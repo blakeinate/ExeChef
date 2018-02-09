@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_restful import Resource, Api, reqparse
 from flask import jsonify
 from pymongo import MongoClient
@@ -10,6 +10,7 @@ app = Flask(__name__)
 api = Api(app)
 
 client = MongoClient()
+
 
 class Accounts(Resource):
     def get(self):
@@ -231,6 +232,10 @@ api.add_resource(Create_Recipe, '/CreateRecipe')
 api.add_resource(Delete_Recipe, '/DeleteRecipe')
 api.add_resource(Search_Recipes, '/SearchRecipe/<recipe_str>')
 
+
+@app.route('/')
+def render_startpage():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(port='5000')
