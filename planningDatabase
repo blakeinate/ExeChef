@@ -1,0 +1,236 @@
+accounts database structure
+{
+    'username': 'blakeb',
+    'password': 'mypassword',
+    'favorites': ['someid', 'someid'],
+    'created' : ['someid', 'someid']
+}
+
+recipes database structure
+{
+    'name' : 'cool recipe',
+    'category' : 'delicious foods',
+    'steps' : ['heat oven', 'put food in', 'eat the food'],
+    'author' : 'blakeb',
+    'description' : 'this is the best meal you will ever eat',
+    'private' : 'True',
+    'ingredients' : [{
+      "name": "Chicken Broth",
+      "amount": "1/2",
+      "unit": "Cups"
+    }],
+    'created_date' : datetime,
+    'modified_date' : datetime
+}
+
+
+ENDPOINTS
+
+create account
+A POST request to the API/CreateAccount should be made.
+Returns: the account ID in the format:
+  {
+    "id": "5a7ce0e5485b9264f0ad8496"
+  }
+Requires: username and password in the following format
+  {
+    "username":"somename",
+    "password": "mypassword"
+  }
+Alternate returns:
+  if username is taken, returns:
+    {'error':'username taken'}
+
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+
+authenticate account
+A POST request to the API/Authenticate should be made.
+Returns: if provided password correct, the account ID in the format:
+  {
+    "id": "5a7ce0e5485b9264f0ad8496"
+  }
+Requires: username and password in the following format
+  {
+    "username":"somename",
+    "password": "mypassword"
+  }
+Alternate returns:
+  if password incorrect, returns:
+    {'error': 'incorrect password'}
+  if username does not exist, returns:
+    {'error': 'account not found'}
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+
+get all accounts
+A GET request to the API/Accounts should be made.
+Returns:
+  {
+    "accounts": [
+      {
+        "_id": {
+          "$oid": "5a7cc9db485b921fc97aff9e"
+        },
+        "created": [],
+        "favorites": [],
+        "password": "meepmeep",
+        "username": "blakeb"
+      },
+      {
+        "_id": {
+          "$oid": "5a7cd05b485b9238e018e273"
+        },
+        "created": [],
+        "favorites": [],
+        "password": "somepass",
+        "username": "derper"
+      },
+      {
+        "_id": {
+          "$oid": "5a7ce0e5485b9264f0ad8496"
+        },
+        "created": [],
+        "favorites": [],
+        "password": "mypassword",
+        "username": "somename"
+      }
+    ]
+  }
+
+Alternate returns:
+  if any error occurs, returns:
+    {'error':'error text'}
+
+
+get a single account
+A GET request to the API/Accounts/<account_id> should be made.
+Returns: if valid account id:
+  {
+    "account": {
+      "_id": {
+        "$oid": "5a7cc9db485b921fc97aff9e"
+      },
+      "created": [],
+      "favorites": [],
+      "password": "meepmeep",
+      "username": "blakeb"
+    }
+  }
+Requires: account_id string appended to end of the route
+
+Alternate returns:
+  if invalid account_id passed, returns:
+    {'error': 'account id invalid'}
+  if any error occurs, returns:
+    {'error':'error text'}
+
+
+
+create a recipe
+A POST request to the API/CreateRecipe should be made.
+Returns: recipe id in the following format:
+  {
+    "id": "5a7ce708485b9274f77a215a"
+  }
+Requires: recipe information in the following format:
+  {
+    "name": "good recipe",
+    "category": "good food",
+    "steps" : ["do cool stuff", "do more cool stuff", "eat it!"],
+    "author": "BlakeB",
+    "description": "this is the best ting you will ever eat",
+    "private": "True",
+    "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
+  }
+Alternate returns:
+  if any error occurs, returns:
+    {'error':'error text'}
+
+
+get all recipes
+A GET request to the API/Recipes should be made.
+Returns: list of recipes in the following format:
+  {
+    "recipes": [
+      {
+        "_id": {
+          "$oid": "5a7cdade485b925737ef6ef5"
+        },
+        "author": "BlakeB",
+        "category": "dank food",
+        "created_date": {
+          "$date": 1518110334999
+        },
+        "description": "this is the best ting you will ever eat",
+        "ingredients": [
+          {
+            "amount": "tree-fitty",
+            "name": "dank",
+            "unit": "pounds"
+          }
+        ],
+        "modified_date": {
+          "$date": 1518110334999
+        },
+        "name": "dank recipe",
+        "private": "True",
+        "steps": [
+          "do cool stuff",
+          "do more cool stuff",
+          "eat that shit"
+        ]
+      }
+    ]
+  }
+
+Alternate returns:
+  if any error occurs, returns:
+    {'error':'error text'}
+
+
+
+
+get a single recipe
+A GET request to the API/Recipes/<recipe_id> should be made.
+Returns: a recipe in the following format:
+  {
+    "recipe": {
+      "_id": {
+        "$oid": "5a7cdade485b925737ef6ef5"
+      },
+      "author": "BlakeB",
+      "category": "dank food",
+      "created_date": {
+        "$date": 1518110334999
+      },
+      "description": "this is the best ting you will ever eat",
+      "ingredients": [
+        {
+          "amount": "tree-fitty",
+          "name": "dank",
+          "unit": "pounds"
+        }
+      ],
+      "modified_date": {
+        "$date": 1518110334999
+      },
+      "name": "dank recipe",
+      "private": "True",
+      "steps": [
+        "do cool stuff",
+        "do more cool stuff",
+        "eat that shit"
+      ]
+    }
+  }
+Requires: a recipe_id to be passed at the end of the route
+Alternate returns:
+  if id is incorrect:
+    {'error': 'recipe not found'}
+  if any other error occurs, returns:
+    {'error':'error text'}
