@@ -25,13 +25,11 @@ recipes database structure
 
 
 ENDPOINTS
-
+---------------------------------------------------------------
 create account
-A POST request to the API/CreateAccount should be made.
-Returns: the account ID in the format:
-  {
-    "id": "5a7ce0e5485b9264f0ad8496"
-  }
+A POST request to the /CreateAccount should be made.
+Returns: {'created': True} if success
+
 Requires: username and password in the following format
   {
     "username":"somename",
@@ -44,19 +42,21 @@ Alternate returns:
   if any other error occurs, returns:
     {'error':'error text'}
 
-
+---------------------------------------------------------------
 
 authenticate account
-A POST request to the API/Authenticate should be made.
+A POST request to /auth should be made.
 Returns: if provided password correct, the account ID in the format:
   {
-    "id": "5a7ce0e5485b9264f0ad8496"
+    "access_token": "<token here>"
   }
 Requires: username and password in the following format
   {
     "username":"somename",
     "password": "mypassword"
   }
+
+  Also requires the header "Content-Type: application/json" to be specified
 Alternate returns:
   if password incorrect, returns:
     {'error': 'incorrect password'}
@@ -66,9 +66,11 @@ Alternate returns:
     {'error':'error text'}
 
 
+---------------------------------------------------------------
+
 
 get all accounts
-A GET request to the API/Accounts should be made.
+A GET request to the /Accounts should be made.
 Returns:
   {
     "accounts": [
@@ -106,10 +108,12 @@ Alternate returns:
   if any error occurs, returns:
     {'error':'error text'}
 
+  ---------------------------------------------------------------
 
-get a single account
-A GET request to the API/Accounts/<account_id> should be made.
-Returns: if valid account id:
+
+get current account
+A GET request to the /Account should be made.
+Returns: if valid JWT:
   {
     "account": {
       "_id": {
@@ -121,18 +125,26 @@ Returns: if valid account id:
       "username": "blakeb"
     }
   }
-Requires: account_id string appended to end of the route
+Requires: JWT Header in the following format:
+  "Authorization: JWT <token here>"
 
 Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
   if invalid account_id passed, returns:
     {'error': 'account id invalid'}
   if any error occurs, returns:
     {'error':'error text'}
 
+---------------------------------------------------------------
 
 
 create a recipe
-A POST request to the API/CreateRecipe should be made.
+A POST request to the /CreateRecipe should be made.
 Returns: recipe id in the following format:
   {
     "id": "5a7ce708485b9274f77a215a"
@@ -147,13 +159,25 @@ Requires: recipe information in the following format:
     "private": "True",
     "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
   }
+
+  Header in the following format:
+    "Authorization: JWT <token here>"
+
 Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
   if any error occurs, returns:
     {'error':'error text'}
 
+---------------------------------------------------------------
+
 
 get all recipes
-A GET request to the API/Recipes should be made.
+A GET request to the /Recipes should be made.
 Returns: list of recipes in the following format:
   {
     "recipes": [
@@ -192,11 +216,11 @@ Alternate returns:
   if any error occurs, returns:
     {'error':'error text'}
 
-
+---------------------------------------------------------------
 
 
 get a single recipe
-A GET request to the API/Recipes/<recipe_id> should be made.
+A GET request to the /Recipes/<recipe_id> should be made.
 Returns: a recipe in the following format:
   {
     "recipe": {
@@ -232,5 +256,107 @@ Requires: a recipe_id to be passed at the end of the route
 Alternate returns:
   if id is incorrect:
     {'error': 'recipe not found'}
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+---------------------------------------------------------------
+
+get users created recipes
+A GET request to the /UserRecipes should be made.
+Returns: list of recipes in the following format:
+  {
+    "recipes": [
+      {
+        "_id": {
+          "$oid": "5a7cdade485b925737ef6ef5"
+        },
+        "author": "BlakeB",
+        "category": "dank food",
+        "created_date": {
+          "$date": 1518110334999
+        },
+        "description": "this is the best ting you will ever eat",
+        "ingredients": [
+          {
+            "amount": "tree-fitty",
+            "name": "dank",
+            "unit": "pounds"
+          }
+        ],
+        "modified_date": {
+          "$date": 1518110334999
+        },
+        "name": "dank recipe",
+        "private": "True",
+        "steps": [
+          "do cool stuff",
+          "do more cool stuff",
+          "eat that shit"
+        ]
+      }
+    ]
+  }
+
+Requires: JWT Header in the following format:
+  "Authorization: JWT <token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+---------------------------------------------------------------
+
+get users favorite recipes
+A GET request to the /Favorites should be made.
+Returns: list of recipes in the following format:
+  {
+    "recipes": [
+      {
+        "_id": {
+          "$oid": "5a7cdade485b925737ef6ef5"
+        },
+        "author": "BlakeB",
+        "category": "dank food",
+        "created_date": {
+          "$date": 1518110334999
+        },
+        "description": "this is the best ting you will ever eat",
+        "ingredients": [
+          {
+            "amount": "tree-fitty",
+            "name": "dank",
+            "unit": "pounds"
+          }
+        ],
+        "modified_date": {
+          "$date": 1518110334999
+        },
+        "name": "dank recipe",
+        "private": "True",
+        "steps": [
+          "do cool stuff",
+          "do more cool stuff",
+          "eat that shit"
+        ]
+      }
+    ]
+  }
+
+Requires: JWT Header in the following format:
+  "Authorization: JWT <token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
   if any other error occurs, returns:
     {'error':'error text'}

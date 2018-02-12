@@ -1,16 +1,25 @@
 from flask import Flask, request, render_template
 from flask_restful import Resource, Api, reqparse
 from flask import jsonify
+from flask_jwt import JWT, jwt_required, current_identity
 from pymongo import MongoClient
 from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
 from datetime import datetime
 import json
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'super-secret'
+app.config['PROPAGATE_EXCEPTIONS'] = True
 api = Api(app)
 
 client = MongoClient()
 
+class User(object):
+    def __init__(self, id):
+        self.id = id
+
+    def __str__(self):
+        return "User(id='%s')" % self.id
 
 class Accounts(Resource):
     def get(self):
@@ -24,8 +33,10 @@ class Accounts(Resource):
             return jsonify({'error':str(e)})
 
 class Account(Resource):
-    def get(self, _account_id):
+    @jwt_required()
+    def get(self):
         try:
+            _account_id = dict(current_identity).get('user_id')
             db = client.exechef
             cursor = db.accounts.find_one({'_id': ObjectId(_account_id)})
             if cursor == None:
@@ -89,48 +100,80 @@ class Create_Account(Resource):
                 'created' : []
             })
             #return the id of the new account
-            return jsonify({'id': str(result.inserted_id)})
+            return jsonify({'created': True})
         except Exception as e:
             return jsonify({'error': str(e)})
 
+
+#checks if a username and password match
+def authenticate(username, password):
+    try:
+        _account_name = username
+        _account_password = password
+        db = client.exechef
+        #add password getting, encrypting, and comparison
+        cursor = db.accounts.find_one({'username': _account_name})
+        if cursor == None:
+            return False
+        if cursor['password'] == _account_password:
+            return User(id=str(cursor.get('_id')))
+        else:
+            return False
+    except Exception as e:
+        return False
+
+#allows us to retrieve the user's id securely
+def identity(payload):
+    user_id = payload['identity']
+    print payload, "PAYLOAD"
+    return {'user_id':user_id}
+
 class Favorites(Resource):
-    def get(self, account_id):
+    @jwt_required()
+    def get(self):
         try:
             db = client.exechef
+            _account_id = dict(current_identity).get('user_id')
             #return list of recipes from user {'userFavorites': []}
-            pass
+            cursor = db.accounts.find_one({'_id': ObjectId(_account_id)})
+            if cursor == None:
+                return jsonify({'error': 'account id invalid'})
+            recipes = []
+            for recipe_id in cursor.get('favorites'):
+                recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+                if recipe_cursor == None:
+                    continue
+                recipes.append(recipe_cursor)
+
+            bson_to_json = dumps(recipes)
+            true_json_data = json.loads(bson_to_json)
+            return jsonify({'recipes':true_json_data})
         except Exception as e:
             return jsonify({'error':str(e)})
 
 class User_Recipes(Resource):
-    def get(self, account_id):
+    @jwt_required()
+    def get(self):
         try:
             db = client.exechef
-            #return list of recipes from user {'userRecipes': []}
-            pass
+            _account_id = dict(current_identity).get('user_id')
+            #return list of recipes from user {'userFavorites': []}
+            cursor = db.accounts.find_one({'_id': ObjectId(_account_id)})
+            if cursor == None:
+                return jsonify({'error': 'account id invalid'})
+            recipes = []
+            for recipe_id in cursor.get('created'):
+                recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+                if recipe_cursor == None:
+                    continue
+                recipes.append(recipe_cursor)
+
+            bson_to_json = dumps(recipes)
+            true_json_data = json.loads(bson_to_json)
+            return jsonify({'recipes':true_json_data})
         except Exception as e:
             return jsonify({'error':str(e)})
 
-class Authenticate_User(Resource):
-    def post(self):
-        try:
-            db = client.exechef
-            json_data = request.get_json(force=True)
-            _account_name = json_data['username']
-            _account_password = json_data['password']
-
-            #add password getting, encrypting, and comparison
-
-            cursor = db.accounts.find_one({'username': _account_name})
-            if cursor == None:
-                return jsonify({'error': 'account not found'})
-            if cursor['password'] == _account_password:
-                return jsonify({'id': str(cursor['_id'])})
-            else:
-                return jsonify({'error': 'incorrect password'})
-
-        except Exception as e:
-            return jsonify({'error': str(e)})
 
 class Recipes(Resource):
     def get(self):
@@ -166,6 +209,7 @@ class Update_Recipe(Resource):
             return jsonify({'error':str(e)})
 
 class Create_Recipe(Resource):
+    @jwt_required()
     def post(self):
         try:
             db = client.exechef
@@ -190,6 +234,9 @@ class Create_Recipe(Resource):
                 'created_date' : datetime.now(),
                 'modified_date' : datetime.now()
             })
+
+            #add recipe to user's created recipes
+            db.accounts.update({'username': author}, {'$push': {'created': str(result.inserted_id)}})
             #return the id of the new recipe
             return jsonify({'id': str(result.inserted_id)})
 
@@ -217,14 +264,13 @@ class Search_Recipes(Resource):
         except Exception as e:
             return jsonify({'error':str(e)})
 
-
+jwt = JWT(app, authenticate, identity)
 api.add_resource(Accounts, '/Accounts')
-api.add_resource(Account, '/Accounts/<_account_id>')
+api.add_resource(Account, '/Account')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
-api.add_resource(Favorites, '/Favorites/<account_id>')
-api.add_resource(User_Recipes, '/UserRecipes/<account_id>')
-api.add_resource(Authenticate_User, '/Authenticate')
+api.add_resource(Favorites, '/Favorites')
+api.add_resource(User_Recipes, '/UserRecipes')
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipes/<recipe_id>')
 api.add_resource(Update_Recipe, '/UpdateRecipe')
