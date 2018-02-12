@@ -9,7 +9,7 @@ accounts database structure
 recipes database structure
 {
     'name' : 'cool recipe',
-    'category' : 'delicious foods',
+    "tags": ["food", "Mexican"],
     'steps' : ['heat oven', 'put food in', 'eat the food'],
     'author' : 'blakeb',
     'description' : 'this is the best meal you will ever eat',
@@ -152,7 +152,7 @@ Returns: recipe id in the following format:
 Requires: recipe information in the following format:
   {
     "name": "good recipe",
-    "category": "good food",
+    "tags": ["food"],
     "steps" : ["do cool stuff", "do more cool stuff", "eat it!"],
     "author": "BlakeB",
     "description": "this is the best ting you will ever eat",
@@ -186,7 +186,7 @@ Returns: list of recipes in the following format:
           "$oid": "5a7cdade485b925737ef6ef5"
         },
         "author": "BlakeB",
-        "category": "dank food",
+        "tags": ["food"],
         "created_date": {
           "$date": 1518110334999
         },
@@ -228,7 +228,7 @@ Returns: a recipe in the following format:
         "$oid": "5a7cdade485b925737ef6ef5"
       },
       "author": "BlakeB",
-      "category": "dank food",
+      "tags": ["food"],
       "created_date": {
         "$date": 1518110334999
       },
@@ -271,7 +271,7 @@ Returns: list of recipes in the following format:
           "$oid": "5a7cdade485b925737ef6ef5"
         },
         "author": "BlakeB",
-        "category": "dank food",
+        "tags": ["food"],
         "created_date": {
           "$date": 1518110334999
         },
@@ -322,7 +322,7 @@ Returns: list of recipes in the following format:
           "$oid": "5a7cdade485b925737ef6ef5"
         },
         "author": "BlakeB",
-        "category": "dank food",
+        "tags": ["food"],
         "created_date": {
           "$date": 1518110334999
         },

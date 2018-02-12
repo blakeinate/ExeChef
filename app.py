@@ -215,7 +215,7 @@ class Create_Recipe(Resource):
             db = client.exechef
             json_data = request.get_json(force=True)
             name = json_data['name']
-            category = json_data['category']
+            tags = json_data['tags']
             steps = json_data['steps']
             author = json_data['author']
             description = json_data['description']
@@ -225,7 +225,7 @@ class Create_Recipe(Resource):
             result = db.recipes.insert_one(
             {
                 'name' : name,
-                'category' : category,
+                'tags' : tags,
                 'steps' : steps,
                 'author' : author,
                 'description' : description,
