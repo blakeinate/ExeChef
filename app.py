@@ -200,11 +200,47 @@ class Recipe(Resource):
             return jsonify({'error':str(e)})
 
 class Update_Recipe(Resource):
+    @jwt_required()
     def put(self):
         try:
+            #these are the fields we want to be able to update
+            acceptable_entries = [
+                'name',
+                'tags',
+                'steps',
+                'description',
+                'private',
+                'ingredients',
+            ]
             db = client.exechef
-            #returns {'updated': True} or False
-            pass
+
+            json_data = request.get_json(force=True)
+
+            recipe_id = json_data['id']
+
+            #verifies user attempting to modify recipe owns the recipe
+            _account_id = dict(current_identity).get('user_id')
+            users_account = db.accounts.find_one({'_id': ObjectId(_account_id)})
+            if recipe_id not in users_account['created']:
+                return jsonify({'error':'User does not have permission to modify this recipe'})
+
+            to_update = {}
+            #removes stuff we don't want to update and updates modified date
+            for key, value in json_data.iteritems():
+                if key in acceptable_entries:
+                    to_update[key] = value
+            to_update['modified_date'] = datetime.now()
+
+            result = db.recipes.update_one(
+                {'_id': ObjectId(recipe_id)},
+                {
+                    '$set': to_update
+                }
+            )
+            if result.modified_count == 1:
+                return jsonify({'updated' : True})
+            else:
+                return jsonify({'updated': False})
         except Exception as e:
             return jsonify({'error':str(e)})
 
@@ -217,17 +253,22 @@ class Create_Recipe(Resource):
             name = json_data['name']
             tags = json_data['tags']
             steps = json_data['steps']
-            author = json_data['author']
             description = json_data['description']
             private = json_data['private']
             ingredients = json_data['ingredients']#[]
+
+            #get author directly from the user logged in to prevent someone
+            #from trying to make it appear another person made the recipe
+            _account_id = dict(current_identity).get('user_id')
+            users_account = db.accounts.find_one({'_id': ObjectId(_account_id)})
+            username = users_account['username']
 
             result = db.recipes.insert_one(
             {
                 'name' : name,
                 'tags' : tags,
                 'steps' : steps,
-                'author' : author,
+                'author' : username,
                 'description' : description,
                 'private' : private,
                 'ingredients' : ingredients,
@@ -236,7 +277,7 @@ class Create_Recipe(Resource):
             })
 
             #add recipe to user's created recipes
-            db.accounts.update({'username': author}, {'$push': {'created': str(result.inserted_id)}})
+            db.accounts.update({'username': username}, {'$push': {'created': str(result.inserted_id)}})
             #return the id of the new recipe
             return jsonify({'id': str(result.inserted_id)})
 
@@ -246,21 +287,38 @@ class Create_Recipe(Resource):
         pass
 
 class Delete_Recipe(Resource):
-    def delete(self):
+    @jwt_required()
+    def delete(self, recipe_id):
         try:
             db = client.exechef
-            #return {'deleted': True} if deleted, otherwise false
-            pass
+
+            #change recipe_id to BSON id format
+            recipe_id = ObjectId(recipe_id)
+
+            #verifies user attempting to delete recipe owns the recipe
+            _account_id = dict(current_identity).get('user_id')
+            users_account = db.accounts.find_one({'_id': ObjectId(_account_id)})
+            if recipe_id not in users_account['created']:
+                return jsonify({'error':'User does not have permission to delete this recipe'})
+
+            result = db.recipes.delete_one({'_id': recipe_id})
+            if result.deleted_count == 1:
+                return jsonify({'deleted': True})
+            else:
+                return jsonify({'deleted': False})
         except Exception as e:
             return jsonify({'error':str(e)})
 
 #search all recipe fields by a string, return recipes with found string
-class Search_Recipes(Resource):
-    def get(self, recipe_str):
+#need to make it non case sensitive
+class Search_Tags(Resource):
+    def get(self, tag_str):
         try:
             db = client.exechef
-            #return list of recipes matching criteria {'recipes' : []}
-            pass
+            cursor = db.recipes.find({'tags': tag_str, 'private': 'False'})
+            bson_to_json = dumps(cursor)
+            true_json_data = json.loads(bson_to_json)
+            return jsonify({'recipes': true_json_data})
         except Exception as e:
             return jsonify({'error':str(e)})
 
@@ -275,8 +333,8 @@ api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipes/<recipe_id>')
 api.add_resource(Update_Recipe, '/UpdateRecipe')
 api.add_resource(Create_Recipe, '/CreateRecipe')
-api.add_resource(Delete_Recipe, '/DeleteRecipe')
-api.add_resource(Search_Recipes, '/SearchRecipe/<recipe_str>')
+api.add_resource(Delete_Recipe, '/DeleteRecipe/<recipe_id>')
+api.add_resource(Search_Tags, '/SearchTags/<tag_str>')
 
 
 @app.route('/')

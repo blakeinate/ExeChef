@@ -8,19 +8,19 @@ accounts database structure
 
 recipes database structure
 {
-    'name' : 'cool recipe',
+    "name" : "cool recipe",
     "tags": ["food", "Mexican"],
-    'steps' : ['heat oven', 'put food in', 'eat the food'],
-    'author' : 'blakeb',
-    'description' : 'this is the best meal you will ever eat',
-    'private' : 'True',
-    'ingredients' : [{
+    "steps" : ["heat oven", "put food in", "eat the food"],
+    "author" : "blakeb",
+    "description" : "this is the best meal you will ever eat",
+    "private" : "True",
+    "ingredients" : [{
       "name": "Chicken Broth",
       "amount": "1/2",
       "unit": "Cups"
     }],
-    'created_date' : datetime,
-    'modified_date' : datetime
+    "created_date" : datetime,
+    "modified_date" : datetime
 }
 
 
@@ -150,15 +150,16 @@ Returns: recipe id in the following format:
     "id": "5a7ce708485b9274f77a215a"
   }
 Requires: recipe information in the following format:
+          (note: author added from username associated with JWT)
   {
     "name": "good recipe",
     "tags": ["food"],
     "steps" : ["do cool stuff", "do more cool stuff", "eat it!"],
-    "author": "BlakeB",
     "description": "this is the best ting you will ever eat",
     "private": "True",
     "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
   }
+
 
   Header in the following format:
     "Authorization: JWT <token here>"
@@ -170,6 +171,41 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
+  if any error occurs, returns:
+    {'error':'error text'}
+
+
+
+---------------------------------------------------------------
+
+
+update a recipe
+A POST request to the /UpdateRecipe should be made.
+Returns:
+  {"updated": True}
+Requires: recipe information in the following format (fields besides id can be missing, only updates fields provided):
+
+  {
+    "id" : "5a7ce708485b9274f77a215a",
+    "steps" : ["do cool stuff", "do more cool stuff", "eat it!"],
+    "description": "this is the best ting you will ever eat",
+    "private": "True",
+    "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
+  }
+
+
+  Header in the following format:
+    "Authorization: JWT <token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if update was not successful:
+    {"updated": False}
   if any error occurs, returns:
     {'error':'error text'}
 
@@ -358,5 +394,79 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+
+
+---------------------------------------------------------------
+
+
+delete a recipe
+A POST request to the /DeleteRecipe/<recipe_id> should be made.
+Returns:
+  {
+    "deleted": True
+  }
+Requires: The JWT token provided is associated with the account that owns the recipe.
+
+
+
+  Header in the following format:
+    "Authorization: JWT <token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if delete was not successful:
+    {"deleted": False}
+  if any error occurs, returns:
+    {'error':'error text'}
+
+---------------------------------------------------------------
+
+
+retrieve recipes by tag
+A GET request to the /SearchTags/<tag_str> should be made.
+Returns: a list of recipes in the following format:
+{
+  "recipes": [
+    {
+      "_id": {
+        "$oid": "5a7cdade485b925737ef6ef5"
+      },
+      "author": "BlakeB",
+      "tags": ["food"],
+      "created_date": {
+        "$date": 1518110334999
+      },
+      "description": "this is the best ting you will ever eat",
+      "ingredients": [
+        {
+          "amount": "tree-fitty",
+          "name": "dank",
+          "unit": "pounds"
+        }
+      ],
+      "modified_date": {
+        "$date": 1518110334999
+      },
+      "name": "dank recipe",
+      "private": "True",
+      "steps": [
+        "do cool stuff",
+        "do more cool stuff",
+        "eat that shit"
+      ]
+    }
+  ]
+}
+Requires: a tag_string to be passed at the end of the route
+Alternate returns:
   if any other error occurs, returns:
     {'error':'error text'}
