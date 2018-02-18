@@ -7,6 +7,8 @@ from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
 from datetime import datetime
 import json
+import re
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['PROPAGATE_EXCEPTIONS'] = True
@@ -315,7 +317,7 @@ class Search_Tags(Resource):
     def get(self, tag_str):
         try:
             db = client.exechef
-            cursor = db.recipes.find({'tags': tag_str, 'private': 'False'})
+            cursor = db.recipes.find({'tags': re.compile(tag_str, re.IGNORECASE), 'private': 'False'})
             bson_to_json = dumps(cursor)
             true_json_data = json.loads(bson_to_json)
             return jsonify({'recipes': true_json_data})
