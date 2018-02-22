@@ -23,6 +23,10 @@ recipes database structure
     "modified_date" : datetime
 }
 
+blacklist database structure (front end should never need to touch this)
+{
+    "token": "jwt_token_string"
+}
 
 ENDPOINTS
 ---------------------------------------------------------------
@@ -44,11 +48,12 @@ Alternate returns:
 
 ---------------------------------------------------------------
 
-authenticate account
-A POST request to /auth should be made.
+Login to account
+A POST request to /Login should be made.
 Returns: if provided password correct, the account ID in the format:
   {
     "access_token": "<token here>"
+    "refresh_token": "<refresh_token_here>"
   }
 Requires: username and password in the following format
   {
@@ -56,12 +61,75 @@ Requires: username and password in the following format
     "password": "mypassword"
   }
 
-  Also requires the header "Content-Type: application/json" to be specified
 Alternate returns:
   if password incorrect, returns:
-    {'error': 'incorrect password'}
+    {'error': 'account password invalid'}
   if username does not exist, returns:
-    {'error': 'account not found'}
+    {'error': 'account does not exist'}
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+---------------------------------------------------------------
+
+refresh access token
+A POST request to /Refresh should be made.
+Returns: if provided JWT refresh token provided:
+  {
+    "access_token": "<token here>"
+  }
+
+Requires: JWT Header in the following format:
+  "Authorization: Bearer <refresh token here>"
+
+
+Alternate returns:
+  if JWT refresh token has been revoked:
+    {"msg": "Token has been revoked"}
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+---------------------------------------------------------------
+
+Logout of account (revokes/blacklists JWT access token)
+A DELETE request to /Logout should be made.
+Returns: if provided JWT access token provided and blacklisting success:
+  {'logged_out': True}
+
+Requires: JWT Header in the following format:
+  "Authorization: Bearer <JWT access token here>"
+
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if blacklisting failed:
+    {'logged_out': False}
+  if any other error occurs, returns:
+    {'error':'error text'}
+
+
+---------------------------------------------------------------
+
+Logout of account 2 (revokes/blacklists JWT refresh token, usually want to use this too)
+A DELETE request to /Logout2 should be made.
+Returns: if provided JWT refresh token provided and blacklisting success:
+  {'logged_out': True}
+
+Requires: JWT Header in the following format:
+  "Authorization: Bearer <refresh token here>"
+
+
+Alternate returns:
+  if JWT refresh token has been revoked:
+    {"msg": "Token has been revoked"}
+  if blacklisting failed:
+    {'logged_out': False}
   if any other error occurs, returns:
     {'error':'error text'}
 
@@ -70,6 +138,7 @@ Alternate returns:
 
 
 get all accounts
+(this will be removed in final version, or made for only admin if implemented)
 A GET request to the /Accounts should be made.
 Returns:
   {
@@ -126,7 +195,7 @@ Returns: if valid JWT:
     }
   }
 Requires: JWT Header in the following format:
-  "Authorization: JWT <token here>"
+  "Authorization: Bearer <access token here>"
 
 Alternate returns:
   if no access token provided:
@@ -162,7 +231,7 @@ Requires: recipe information in the following format:
 
 
   Header in the following format:
-    "Authorization: JWT <token here>"
+    "Authorization: Bearer <access token here>"
 
 Alternate returns:
   if no access token provided:
@@ -195,7 +264,7 @@ Requires: recipe information in the following format (fields besides id can be m
 
 
   Header in the following format:
-    "Authorization: JWT <token here>"
+    "Authorization: Bearer <access token here>"
 
 Alternate returns:
   if no access token provided:
@@ -292,6 +361,8 @@ Requires: a recipe_id to be passed at the end of the route
 Alternate returns:
   if id is incorrect:
     {'error': 'recipe not found'}
+  if recipe is private and author does not match current user:
+    {'error': 'private recipe is owned by another user'}
   if any other error occurs, returns:
     {'error':'error text'}
 
@@ -334,7 +405,7 @@ Returns: list of recipes in the following format:
   }
 
 Requires: JWT Header in the following format:
-  "Authorization: JWT <token here>"
+  "Authorization: Bearer <access token here>"
 
 Alternate returns:
   if no access token provided:
@@ -385,7 +456,7 @@ Returns: list of recipes in the following format:
   }
 
 Requires: JWT Header in the following format:
-  "Authorization: JWT <token here>"
+  "Authorization: Bearer <token here>"
 
 Alternate returns:
   if no access token provided:
@@ -414,7 +485,7 @@ Requires: The JWT token provided is associated with the account that owns the re
 
 
   Header in the following format:
-    "Authorization: JWT <token here>"
+    "Authorization: Bearer <token here>"
 
 Alternate returns:
   if no access token provided:
@@ -433,7 +504,7 @@ Alternate returns:
 
 retrieve recipes by tag
 A GET request to the /SearchTags/<tag_str> should be made.
-Returns: a list of recipes in the following format:
+Returns: a list of recipes containing any of the searched tags in the following format:
 {
   "recipes": [
     {
@@ -467,6 +538,7 @@ Returns: a list of recipes in the following format:
   ]
 }
 Requires: a tag_string to be passed at the end of the route
+    The tag string should be a list of tags separated by commas ","
 Alternate returns:
   if any other error occurs, returns:
     {'error':'error text'}
