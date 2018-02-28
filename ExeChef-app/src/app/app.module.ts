@@ -4,10 +4,12 @@ import { RouterModule } from '@angular/router';
 import { HomeModule } from './home/home.module';
 import {AuthModule} from "./auth/auth.module";
 import { AppComponent } from './app.component';
-
 import {
+  ApiService,
+  UserService,
   FooterComponent,
   HeaderComponent,
+  SharedModule,
 } from './shared';
 
 const rootRouting: ModuleWithProviders = RouterModule.forRoot([], { useHash: true });
@@ -23,8 +25,12 @@ const rootRouting: ModuleWithProviders = RouterModule.forRoot([], { useHash: tru
     AuthModule,
     HomeModule,
     rootRouting,
+    SharedModule,
   ],
-  providers: [],
+  providers: [
+    ApiService,
+    UserService,
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
