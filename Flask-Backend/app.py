@@ -6,6 +6,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required, create_refresh_token,
     get_jwt_identity, get_raw_jwt
 )
+from flask_cors import CORS
 from pymongo import MongoClient
 from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
@@ -15,6 +16,7 @@ import re
 import string
 
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_BLACKLIST_ENABLED'] = True
@@ -56,7 +58,7 @@ class Accounts(Resource):
             cursor = db.accounts.find()
             bson_to_json = dumps(cursor)
             true_json_data = json.loads(bson_to_json)
-            return jsonify({'accounts': true_json_data})
+            return jsonify2({'accounts': true_json_data})
         except Exception as e:
             return jsonify({'error':str(e)})
 
