@@ -2,6 +2,7 @@ accounts database structure
 {
     'username': 'blakeb',
     'password': 'mypassword',
+    'email': 'blakeb@gmail.com',
     'favorites': ['someid', 'someid'],
     'created' : ['someid', 'someid']
 }
@@ -32,42 +33,80 @@ ENDPOINTS
 ---------------------------------------------------------------
 create account
 A POST request to the /CreateAccount should be made.
-Returns: {'created': True} if success
+Returns:
+{
+  "data": {
+    "account": {
+      "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+      },
+      "created": [
+        "5a8620a0485b9238269cddfc",
+        "5a862149485b9238269cddfd"
+      ],
+      "favorites": [],
+      "password": "datboi",
+      "username": "moosey"
+    }
+  }
+}
 
-Requires: username and password in the following format
+Requires: username, email and password in the following format
   {
     "username":"somename",
+    "email": "somename@email.com",
     "password": "mypassword"
   }
 Alternate returns:
   if username is taken, returns:
-    {'error':'username taken'}
+    422, {'message':'The username provided is already in use.'}
+  if email taken:
+    422, {'message':'The email provided is already in use.'}
+  if no account name provided:
+    422, {'message':'The provided username is invalid.'}
+  if no email provided:
+    422, {'message':'The provided email is invalid.'}
+  if no password provided:
+    422, {'message':'The provided username is invalid.'}
 
-  if any other error occurs, returns:
-    {'error':'error text'}
 
 ---------------------------------------------------------------
 
 Login to account
 A POST request to /Login should be made.
-Returns: if provided password correct, the account ID in the format:
-  {
-    "access_token": "<token here>"
-    "refresh_token": "<refresh_token_here>"
+Returns: if provided password correct
+{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzMTRhOWUwZC1kMGE0LTQ2ZWEtOTZiMy1lMTU3ZGVjY2Y5NzIiLCJleHAiOjE1MTk4NjU5NTksImZyZXNoIjpmYWxzZSwiaWF0IjoxNTE5ODY1MDU5LCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTE5ODY1MDU5LCJpZGVudGl0eSI6Im1vb3NleSJ9.qTT-bCVTC07Epe87KoJyvWq5RNKowRgy0PFL1nUKGZA",
+    "account": {
+      "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+      },
+      "created": [
+        "5a8620a0485b9238269cddfc",
+        "5a862149485b9238269cddfd"
+      ],
+      "favorites": [],
+      "password": "datboi",
+      "username": "moosey"
+    },
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNDI2Njg2ZC05MjU2LTRhYmYtOGFjMi1lMzBjNzZkOTIwOGUiLCJleHAiOjE1MjI0NTcwNTksImlhdCI6MTUxOTg2NTA1OSwidHlwZSI6InJlZnJlc2giLCJuYmYiOjE1MTk4NjUwNTksImlkZW50aXR5IjoibW9vc2V5In0.tHXR6Ebf9AwkXoNj4WRMNjuN6NfGdqDkkQN7xX6AzNk"
   }
-Requires: username and password in the following format
+}
+Requires: username or email and password in the following format
   {
-    "username":"somename",
+    "login":"somename (or someemail@gmail.com)",
     "password": "mypassword"
   }
 
 Alternate returns:
   if password incorrect, returns:
-    {'error': 'account password invalid'}
-  if username does not exist, returns:
-    {'error': 'account does not exist'}
-  if any other error occurs, returns:
-    {'error':'error text'}
+    422, {'message': 'The current password does not match the password provided.'}
+  if username/email does not exist, returns:
+    422, {'message':'The username/email provided is not associated with an active account.'}
+  if no username/email provided:
+    422, {'message':'Please provide a valid username/email.'}
+
 
 
 ---------------------------------------------------------------
@@ -76,7 +115,9 @@ refresh access token
 A POST request to /Refresh should be made.
 Returns: if provided JWT refresh token provided:
   {
-    "access_token": "<token here>"
+    'data':{
+        "access_token": "<token here>"
+    }
   }
 
 Requires: JWT Header in the following format:
@@ -87,7 +128,7 @@ Alternate returns:
   if JWT refresh token has been revoked:
     {"msg": "Token has been revoked"}
   if any other error occurs, returns:
-    {'error':'error text'}
+    500, {'message': some exception text}
 
 
 ---------------------------------------------------------------
@@ -95,7 +136,7 @@ Alternate returns:
 Logout of account (revokes/blacklists JWT access token)
 A DELETE request to /Logout should be made.
 Returns: if provided JWT access token provided and blacklisting success:
-  {'logged_out': True}
+  200
 
 Requires: JWT Header in the following format:
   "Authorization: Bearer <JWT access token here>"
@@ -109,9 +150,8 @@ Alternate returns:
     "status_code": 401
     }
   if blacklisting failed:
-    {'logged_out': False}
-  if any other error occurs, returns:
-    {'error':'error text'}
+    500, {'Unable to communicate with database.'}
+
 
 
 ---------------------------------------------------------------
@@ -119,7 +159,7 @@ Alternate returns:
 Logout of account 2 (revokes/blacklists JWT refresh token, usually want to use this too)
 A DELETE request to /Logout2 should be made.
 Returns: if provided JWT refresh token provided and blacklisting success:
-  {'logged_out': True}
+  200
 
 Requires: JWT Header in the following format:
   "Authorization: Bearer <refresh token here>"
@@ -129,9 +169,7 @@ Alternate returns:
   if JWT refresh token has been revoked:
     {"msg": "Token has been revoked"}
   if blacklisting failed:
-    {'logged_out': False}
-  if any other error occurs, returns:
-    {'error':'error text'}
+    500, {'Unable to communicate with database.'}
 
 
 ---------------------------------------------------------------
@@ -142,40 +180,39 @@ get all accounts
 A GET request to the /Accounts should be made.
 Returns:
   {
-    "accounts": [
-      {
-        "_id": {
-          "$oid": "5a7cc9db485b921fc97aff9e"
-        },
-        "created": [],
-        "favorites": [],
-        "password": "meepmeep",
-        "username": "blakeb"
-      },
-      {
-        "_id": {
-          "$oid": "5a7cd05b485b9238e018e273"
-        },
-        "created": [],
-        "favorites": [],
-        "password": "somepass",
-        "username": "derper"
-      },
-      {
-        "_id": {
-          "$oid": "5a7ce0e5485b9264f0ad8496"
-        },
-        "created": [],
-        "favorites": [],
-        "password": "mypassword",
-        "username": "somename"
-      }
-    ]
+    'data':{
+        "accounts": [
+          {
+            "_id": {
+              "$oid": "5a7cc9db485b921fc97aff9e"
+            },
+            "created": [],
+            "favorites": [],
+            "password": "meepmeep",
+            "username": "blakeb"
+          },
+          {
+            "_id": {
+              "$oid": "5a7cd05b485b9238e018e273"
+            },
+            "created": [],
+            "favorites": [],
+            "password": "somepass",
+            "username": "derper"
+          },
+          {
+            "_id": {
+              "$oid": "5a7ce0e5485b9264f0ad8496"
+            },
+            "created": [],
+            "favorites": [],
+            "password": "mypassword",
+            "username": "somename"
+          }
+        ]
+    }
   }
 
-Alternate returns:
-  if any error occurs, returns:
-    {'error':'error text'}
 
   ---------------------------------------------------------------
 
@@ -184,14 +221,16 @@ get current account
 A GET request to the /Account should be made.
 Returns: if valid JWT:
   {
-    "account": {
-      "_id": {
-        "$oid": "5a7cc9db485b921fc97aff9e"
-      },
-      "created": [],
-      "favorites": [],
-      "password": "meepmeep",
-      "username": "blakeb"
+    'data':{
+        "account": {
+          "_id": {
+            "$oid": "5a7cc9db485b921fc97aff9e"
+          },
+          "created": [],
+          "favorites": [],
+          "password": "meepmeep",
+          "username": "blakeb"
+        }
     }
   }
 Requires: JWT Header in the following format:
@@ -204,10 +243,10 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if invalid account_id passed, returns:
-    {'error': 'account id invalid'}
-  if any error occurs, returns:
-    {'error':'error text'}
+  if cannot find account for the access token:
+  if blacklisting failed:
+    400, {'message':'No account found associated with provided access token.'}
+
 
 ---------------------------------------------------------------
 
@@ -216,7 +255,9 @@ create a recipe
 A POST request to the /CreateRecipe should be made.
 Returns: recipe id in the following format:
   {
-    "id": "5a7ce708485b9274f77a215a"
+    'data':{
+      "id": "5a7ce708485b9274f77a215a"
+    }
   }
 Requires: recipe information in the following format:
           (note: author added from username associated with JWT)
@@ -240,8 +281,8 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if any error occurs, returns:
-    {'error':'error text'}
+  if missing fields:
+    422, {'message':'Some required fields were not provided.'}
 
 
 
@@ -251,7 +292,7 @@ Alternate returns:
 update a recipe
 A POST request to the /UpdateRecipe should be made.
 Returns:
-  {"updated": True}
+  200
 Requires: recipe information in the following format (fields besides id can be missing, only updates fields provided):
 
   {
@@ -274,9 +315,7 @@ Alternate returns:
     "status_code": 401
     }
   if update was not successful:
-    {"updated": False}
-  if any error occurs, returns:
-    {'error':'error text'}
+    500, {'message':'Unable to communicate with database and/or recipe modification failed.'}
 
 ---------------------------------------------------------------
 
@@ -285,41 +324,40 @@ get all recipes
 A GET request to the /Recipes should be made.
 Returns: list of recipes in the following format:
   {
-    "recipes": [
-      {
-        "_id": {
-          "$oid": "5a7cdade485b925737ef6ef5"
-        },
-        "author": "BlakeB",
-        "tags": ["food"],
-        "created_date": {
-          "$date": 1518110334999
-        },
-        "description": "this is the best ting you will ever eat",
-        "ingredients": [
+    'data':{
+        "recipes": [
           {
-            "amount": "tree-fitty",
-            "name": "dank",
-            "unit": "pounds"
+            "_id": {
+              "$oid": "5a7cdade485b925737ef6ef5"
+            },
+            "author": "BlakeB",
+            "tags": ["food"],
+            "created_date": {
+              "$date": 1518110334999
+            },
+            "description": "this is the best ting you will ever eat",
+            "ingredients": [
+              {
+                "amount": "tree-fitty",
+                "name": "dank",
+                "unit": "pounds"
+              }
+            ],
+            "modified_date": {
+              "$date": 1518110334999
+            },
+            "name": "dank recipe",
+            "private": "True",
+            "steps": [
+              "do cool stuff",
+              "do more cool stuff",
+              "eat that shit"
+            ]
           }
-        ],
-        "modified_date": {
-          "$date": 1518110334999
-        },
-        "name": "dank recipe",
-        "private": "True",
-        "steps": [
-          "do cool stuff",
-          "do more cool stuff",
-          "eat that shit"
         ]
-      }
-    ]
+    }
   }
 
-Alternate returns:
-  if any error occurs, returns:
-    {'error':'error text'}
 
 ---------------------------------------------------------------
 
@@ -328,43 +366,44 @@ get a single recipe
 A GET request to the /Recipes/<recipe_id> should be made.
 Returns: a recipe in the following format:
   {
-    "recipe": {
-      "_id": {
-        "$oid": "5a7cdade485b925737ef6ef5"
-      },
-      "author": "BlakeB",
-      "tags": ["food"],
-      "created_date": {
-        "$date": 1518110334999
-      },
-      "description": "this is the best ting you will ever eat",
-      "ingredients": [
-        {
-          "amount": "tree-fitty",
-          "name": "dank",
-          "unit": "pounds"
+    'data':{
+        "recipe": {
+          "_id": {
+            "$oid": "5a7cdade485b925737ef6ef5"
+          },
+          "author": "BlakeB",
+          "tags": ["food"],
+          "created_date": {
+            "$date": 1518110334999
+          },
+          "description": "this is the best ting you will ever eat",
+          "ingredients": [
+            {
+              "amount": "tree-fitty",
+              "name": "dank",
+              "unit": "pounds"
+            }
+          ],
+          "modified_date": {
+            "$date": 1518110334999
+          },
+          "name": "dank recipe",
+          "private": "True",
+          "steps": [
+            "do cool stuff",
+            "do more cool stuff",
+            "eat that shit"
+          ]
         }
-      ],
-      "modified_date": {
-        "$date": 1518110334999
-      },
-      "name": "dank recipe",
-      "private": "True",
-      "steps": [
-        "do cool stuff",
-        "do more cool stuff",
-        "eat that shit"
-      ]
     }
   }
 Requires: a recipe_id to be passed at the end of the route
 Alternate returns:
   if id is incorrect:
-    {'error': 'recipe not found'}
+    400, {'message':'No recipe found with the provided recipe ID.'}
   if recipe is private and author does not match current user:
-    {'error': 'private recipe is owned by another user'}
-  if any other error occurs, returns:
-    {'error':'error text'}
+    403, {'message':'Private recipe is owned by another user.'}
+
 
 ---------------------------------------------------------------
 
@@ -372,36 +411,38 @@ get users created recipes
 A GET request to the /UserRecipes should be made.
 Returns: list of recipes in the following format:
   {
-    "recipes": [
-      {
-        "_id": {
-          "$oid": "5a7cdade485b925737ef6ef5"
-        },
-        "author": "BlakeB",
-        "tags": ["food"],
-        "created_date": {
-          "$date": 1518110334999
-        },
-        "description": "this is the best ting you will ever eat",
-        "ingredients": [
+    'data':{
+        "recipes": [
           {
-            "amount": "tree-fitty",
-            "name": "dank",
-            "unit": "pounds"
+            "_id": {
+              "$oid": "5a7cdade485b925737ef6ef5"
+            },
+            "author": "BlakeB",
+            "tags": ["food"],
+            "created_date": {
+              "$date": 1518110334999
+            },
+            "description": "this is the best ting you will ever eat",
+            "ingredients": [
+              {
+                "amount": "tree-fitty",
+                "name": "dank",
+                "unit": "pounds"
+              }
+            ],
+            "modified_date": {
+              "$date": 1518110334999
+            },
+            "name": "dank recipe",
+            "private": "True",
+            "steps": [
+              "do cool stuff",
+              "do more cool stuff",
+              "eat that shit"
+            ]
           }
-        ],
-        "modified_date": {
-          "$date": 1518110334999
-        },
-        "name": "dank recipe",
-        "private": "True",
-        "steps": [
-          "do cool stuff",
-          "do more cool stuff",
-          "eat that shit"
         ]
-      }
-    ]
+    }
   }
 
 Requires: JWT Header in the following format:
@@ -414,8 +455,8 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if any other error occurs, returns:
-    {'error':'error text'}
+  if access token does not relate to active account:
+    400, {'message':'No account found associated with provided access token.'}
 
 ---------------------------------------------------------------
 
@@ -423,36 +464,38 @@ get users favorite recipes
 A GET request to the /Favorites should be made.
 Returns: list of recipes in the following format:
   {
-    "recipes": [
-      {
-        "_id": {
-          "$oid": "5a7cdade485b925737ef6ef5"
-        },
-        "author": "BlakeB",
-        "tags": ["food"],
-        "created_date": {
-          "$date": 1518110334999
-        },
-        "description": "this is the best ting you will ever eat",
-        "ingredients": [
+    'data':{
+        "recipes": [
           {
-            "amount": "tree-fitty",
-            "name": "dank",
-            "unit": "pounds"
+            "_id": {
+              "$oid": "5a7cdade485b925737ef6ef5"
+            },
+            "author": "BlakeB",
+            "tags": ["food"],
+            "created_date": {
+              "$date": 1518110334999
+            },
+            "description": "this is the best ting you will ever eat",
+            "ingredients": [
+              {
+                "amount": "tree-fitty",
+                "name": "dank",
+                "unit": "pounds"
+              }
+            ],
+            "modified_date": {
+              "$date": 1518110334999
+            },
+            "name": "dank recipe",
+            "private": "True",
+            "steps": [
+              "do cool stuff",
+              "do more cool stuff",
+              "eat that shit"
+            ]
           }
-        ],
-        "modified_date": {
-          "$date": 1518110334999
-        },
-        "name": "dank recipe",
-        "private": "True",
-        "steps": [
-          "do cool stuff",
-          "do more cool stuff",
-          "eat that shit"
         ]
-      }
-    ]
+    }
   }
 
 Requires: JWT Header in the following format:
@@ -465,8 +508,8 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if any other error occurs, returns:
-    {'error':'error text'}
+  if access token does not relate to active account:
+    400, {'message':'No account found associated with provided access token.'}
 
 
 
@@ -495,9 +538,10 @@ Alternate returns:
     "status_code": 401
     }
   if delete was not successful:
-    {"deleted": False}
-  if any error occurs, returns:
-    {'error':'error text'}
+    500, {'message':'Unable to communicate with database and/or recipe modification failed.'}
+  if user not owner of the recipe:
+    403, {'message':'Recipe is owned by another user. Modifications are not allowed.'}
+
 
 ---------------------------------------------------------------
 
@@ -506,39 +550,38 @@ retrieve recipes by tag
 A GET request to the /SearchTags/<tag_str> should be made.
 Returns: a list of recipes containing any of the searched tags in the following format:
 {
-  "recipes": [
-    {
-      "_id": {
-        "$oid": "5a7cdade485b925737ef6ef5"
-      },
-      "author": "BlakeB",
-      "tags": ["food"],
-      "created_date": {
-        "$date": 1518110334999
-      },
-      "description": "this is the best ting you will ever eat",
-      "ingredients": [
-        {
-          "amount": "tree-fitty",
-          "name": "dank",
-          "unit": "pounds"
-        }
-      ],
-      "modified_date": {
-        "$date": 1518110334999
-      },
-      "name": "dank recipe",
-      "private": "True",
-      "steps": [
-        "do cool stuff",
-        "do more cool stuff",
-        "eat that shit"
-      ]
+    'data':{
+        "recipes": [
+          {
+            "_id": {
+              "$oid": "5a7cdade485b925737ef6ef5"
+            },
+            "author": "BlakeB",
+            "tags": ["food"],
+            "created_date": {
+              "$date": 1518110334999
+            },
+            "description": "this is the best ting you will ever eat",
+            "ingredients": [
+              {
+                "amount": "tree-fitty",
+                "name": "dank",
+                "unit": "pounds"
+              }
+            ],
+            "modified_date": {
+              "$date": 1518110334999
+            },
+            "name": "dank recipe",
+            "private": "True",
+            "steps": [
+              "do cool stuff",
+              "do more cool stuff",
+              "eat that shit"
+            ]
+          }
+        ]
     }
-  ]
 }
 Requires: a tag_string to be passed at the end of the route
     The tag string should be a list of tags separated by commas ","
-Alternate returns:
-  if any other error occurs, returns:
-    {'error':'error text'}
