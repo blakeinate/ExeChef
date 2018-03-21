@@ -7,7 +7,6 @@ from flask_jwt_extended import (
     jwt_refresh_token_required, create_refresh_token,
     get_jwt_identity, get_raw_jwt
 )
-from flask_cors import CORS
 from pymongo import MongoClient
 from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
@@ -18,7 +17,6 @@ import re
 import string
 
 app = Flask(__name__)
-CORS(app)
 app.config['SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_BLACKLIST_ENABLED'] = True
@@ -27,6 +25,13 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 api = Api(app)
 jwt = JWTManager(app)
 client = MongoClient()
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
@@ -432,6 +437,11 @@ class Search_Tags(Resource):
         resp.status_code = 200
         return resp
 
+class Pagination(object):
+    def __init__(self, page, per_page, total_count):
+        self.page = page
+        self.per_page = per_page
+        self.total_count = total_count
 
 
 
