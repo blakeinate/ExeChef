@@ -33,7 +33,7 @@ export class UserService {
 
   attemptAuth(type, credentials): Observable<User> {
     let route = (type === 'login') ? '/Login' : '/CreateAccount';
-    return this.apiService.post(route, {user: credentials})
+    return this.apiService.post(route, credentials)
     .map(
       data => {
         this.setAuth(data.user);
