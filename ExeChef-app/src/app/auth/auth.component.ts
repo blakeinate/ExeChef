@@ -45,18 +45,17 @@ export class AuthComponent implements OnInit {
     this.errors = new Errors();
 
     let credentials = this.authForm.value;
-    let tempCredentials = {
-      username: credentials.username,
-      password: credentials.password
-    }
-    this.userService.attemptAuth(this.authType,tempCredentials).subscribe(
+    this.userService.attemptAuth(this.authType,credentials).subscribe(
       (data)=>{
         console.log(data);
         this.router.navigateByUrl('/');
       },
       (err)=>{
-        this.errors = err;
+        this.errors = {
+          errors: {"Error":err.message}
+      };
         console.log("errors->",err);
+        console.log(this.errors);
         this.isSubmitting = false;
       }
     )

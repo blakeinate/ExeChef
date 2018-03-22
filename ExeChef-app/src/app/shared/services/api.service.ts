@@ -14,10 +14,10 @@ export class ApiService {
   private setHeaders(): Headers {
     let headersConfig = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      'Accept': 'application/json',
     };
 
-    return new Headers(headersConfig);
+    return new Headers(headersConfig); 
   }
 
   private formatErrors(error: any) {
@@ -25,6 +25,7 @@ export class ApiService {
   }
 
   post(path: string, body: Object = {}): Observable<any> {
+    console.log(JSON.stringify(body));
     return this.http.post(`${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
         .catch(this.formatErrors)
         .map((res:Response) => res.json());
