@@ -122,9 +122,9 @@ class Create_Account(Resource):
         db = client.exechef
         json_data = request.get_json(force=True)
 
-        _account_name = json_data.get('user').get('username')
-        _account_password = json_data.get('user').get('password')
-        _account_email = json_data.get('user').get('email')
+        _account_name = json_data.get('username')
+        _account_password = json_data.get('password')
+        _account_email = json_data.get('email')
 
         if not _account_name:
             abort(422, message='The provided username is invalid.')
