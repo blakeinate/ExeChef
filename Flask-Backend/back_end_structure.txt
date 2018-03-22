@@ -1,3 +1,11 @@
+Brief requirements:
+  need MongoDB installed on system
+  need python 2.7 installed
+    pip installation recommended to aid in installing
+     of package requirements from requirements.txt
+  after installation of python, you can install all packages needed
+   using the following command "pip install -r requirements.txt"
+
 accounts database structure
 {
     'username': 'blakeb',
