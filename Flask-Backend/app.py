@@ -1,6 +1,6 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from flask_restful import Resource, Api, reqparse
-from flask.ext.restful import abort
+#from flask.ext.restful import abort
 from flask import jsonify, Response
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -14,14 +14,20 @@ from validate_email import validate_email
 from datetime import datetime
 import json
 import re
-import string
+import os.path
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = '/static/images/'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_SECRET_KEY'] = 'the most secret key ever'
 app.config['JWT_BLACKLIST_ENABLED'] = True
 app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 app.config['PROPAGATE_EXCEPTIONS'] = True
+
 api = Api(app)
 jwt = JWTManager(app)
 client = MongoClient()
@@ -57,6 +63,35 @@ def add_to_blacklist(jti):
         return True
     except Exception as e:
         return False
+
+def allowed_file(filename):
+    if '.' in filename:
+        if filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
+            return True
+    return False
+
+
+#uploads image to server and returns secure filename
+def upload_image(self, file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        #make sure filename is unique in folder
+        if os.path.isfile(app.config['UPLOAD_FOLDER'] + filename):
+            good_filename = False
+            count = 0
+            #if not unique, append count to beginning of filename until it is unique
+            while(not good_filename):
+                if os.path.isfile(app.config['UPLOAD_FOLDER'] + str(count) + filename) == False:
+                    filename = str(count) + filename
+                    good_filename = True
+                else:
+                    count = count + 1
+        #save to upload folder
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return filename
+    else:
+        return None
+
 
 class Accounts(Resource):
     def get(self):
@@ -365,6 +400,13 @@ class Create_Recipe(Resource):
     @jwt_required
     def post(self):
         db = client.exechef
+        #check if image provided
+        image = None;
+        if 'file' in request.files:
+            image = request.files['file']
+            if image.filename == '':
+                image = None
+
         json_data = request.get_json(force=True)
         name = json_data.get('name')
         tags = json_data.get('tags')
@@ -375,6 +417,12 @@ class Create_Recipe(Resource):
 
         if (not name) or (not private) or (not ingredients) or (not steps):
             abort(422, message='Some required fields were not provided.')
+
+        #upload image and get secure filename
+        secure_filename = None
+        if image:
+            secure_filename = upload_image(image)
+
         #get author directly from the user logged in to prevent someone
         #from trying to make it appear another person made the recipe
         _account_name = get_jwt_identity()
@@ -382,6 +430,7 @@ class Create_Recipe(Resource):
         result = db.recipes.insert_one(
         {
             'name' : name,
+            'image_name': secure_filename,
             'tags' : tags,
             'steps' : steps,
             'author' : _account_name,
