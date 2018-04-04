@@ -3,4 +3,5 @@ export class User{
   password: string;
   favorites: string[];
   created: string[];
+  access_token: string;
 }
