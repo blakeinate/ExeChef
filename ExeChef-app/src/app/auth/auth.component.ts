@@ -45,6 +45,14 @@ export class AuthComponent implements OnInit {
     this.errors = new Errors();
 
     let credentials = this.authForm.value;
+    //if were logging in then let credentials be in the form of login, Password
+    // so user can use username to login
+    if(this.authType == "login"){
+     credentials = {
+        "login": credentials.email,
+        "password": credentials.password
+      }
+    }
     this.userService.attemptAuth(this.authType,credentials).subscribe(
       (data)=>{
         console.log(data);
