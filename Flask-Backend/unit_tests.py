@@ -5,6 +5,7 @@ import random
 import app
 from pymongo import MongoClient
 
+
 client = MongoClient()
 
 class TestCreationMethods(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestCreationMethods(unittest.TestCase):
         email_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '@gmail.com'
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testusername', 'password': 'somepassword', 'email': email_name})
         username = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-        response = requests.post('http://localhost:5000/CreateAccount', json={'username': username , 'password': 'somepassword', 'email': email_name})
+        response = requests.post('http://localhost:5000/CreateAccount', json={'username': username, 'password': 'somepassword', 'email': email_name})
         self.assertEqual(response.status_code, 422)
 
     def test_account_creation_no_username(self):
@@ -59,7 +60,7 @@ class TestCreationMethods(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -74,7 +75,7 @@ class TestCreationMethods(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {
-                  'private': 'true',
+                  'private': 'True',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit': 'pounds'}],
@@ -103,7 +104,7 @@ class TestCreationMethods(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'steps': ['do cool stuff', 'do more stuff']}
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
@@ -115,7 +116,7 @@ class TestCreationMethods(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit': 'pounds'}],
@@ -140,7 +141,7 @@ class TestDataAccess(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'false',
+                  'private': 'False',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -157,7 +158,7 @@ class TestDataAccess(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -174,7 +175,7 @@ class TestDataAccess(unittest.TestCase):
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
         access_token = login_response.json().get('data').get('access_token')
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -187,8 +188,8 @@ class TestDataAccess(unittest.TestCase):
 
     def test_recipe_invalid_id(self):
         #check response for non real recipe id
-        response = requests.get('http://localhost:5000/Recipes/12345678911010101')
-        self.assertEqual(response.status_code, 400)
+        response = requests.get('http://localhost:5000/Recipes/meepmooper')
+        self.assertEqual(response.status_code, 500)
 
     def test_recipe_retrieval_by_user_favorites(self):
         #get valid account favorites
@@ -223,7 +224,7 @@ class TestDataAccess(unittest.TestCase):
         tag2 = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
         recipe = {'name': 'testrecipe',
-                  'private': 'false',
+                  'private': 'False',
                   'tags': [tag1, tag2],
                   'ingredients': [
                       {'name': 'someingredient',
@@ -244,7 +245,7 @@ class TestDataAccess(unittest.TestCase):
         access_token = login_response.json().get('data').get('access_token')
         tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         recipe = {'name': 'testrecipe',
-                  'private': 'true',
+                  'private': 'True',
                   'tags': [tag],
                   'ingredients': [
                       {'name': 'someingredient',
