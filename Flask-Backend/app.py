@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
 from flask_restful import Resource, Api, reqparse, abort
-#from flask.ext.restful import abort
 from flask import jsonify, Response
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -93,18 +92,18 @@ def upload_image(self, file):
         return None
 
 
-class Accounts(Resource):
+class Users(Resource):
     def get(self):
         db = client.exechef
         cursor = db.accounts.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data': {'accounts': true_json_data}})
+        resp = jsonify({'data': {'users': true_json_data}})
         resp.status_code = 200
         return resp
 
 
-class Account(Resource):
+class User(Resource):
     @jwt_required
     def get(self):
         _account_name = get_jwt_identity()
@@ -114,7 +113,7 @@ class Account(Resource):
             abort(400, message='No account found associated with provided access token.')
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data': {'account': true_json_data}})
+        resp = jsonify({'data': {'user': true_json_data}})
         resp.status_code = 200
         return resp
 
@@ -192,7 +191,7 @@ class Create_Account(Resource):
         bson_to_json = dumps(created)
         true_json_data = json.loads(bson_to_json)
         #return the id of the new account
-        resp = jsonify({'data': {'account': true_json_data}})
+        resp = jsonify({'data': {'user': true_json_data}})
         resp.status_code = 200
         return resp
 
@@ -226,11 +225,9 @@ class Login(Resource):
             bson_to_json = dumps(cursor)
             true_json_data = json.loads(bson_to_json)
             resp = jsonify({
-                'data': {
-                    'account' : true_json_data,
-                    'access_token': _access_token,
-                    'refresh_token': _refresh_token
-                }
+                'user' : true_json_data,
+                'access_token': _access_token,
+                'refresh_token': _refresh_token
             })
             resp.status_code = 200
             return resp
@@ -498,8 +495,8 @@ api.add_resource(Login, '/Login')
 api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
-api.add_resource(Accounts, '/Accounts')
-api.add_resource(Account, '/Account')
+api.add_resource(Users, '/Users')
+api.add_resource(User, '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')
