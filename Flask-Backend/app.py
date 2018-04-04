@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api, reqparse, abort
 #from flask.ext.restful import abort
 from flask import jsonify, Response
 from flask_jwt_extended import (
@@ -114,7 +114,7 @@ class Account(Resource):
             abort(400, message='No account found associated with provided access token.')
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'account': true_json_data}})
+        resp = jsonify({'data': {'account': true_json_data}})
         resp.status_code = 200
         return resp
 
@@ -165,7 +165,7 @@ class Create_Account(Resource):
             abort(422, message='The provided username is invalid.')
         if not _account_password:
             abort(422, message='The provided password is invalid.')
-        if not validate_email(_account_email):
+        if not validate_email(str(_account_email)):
             abort(422, message='The provided email is invalid.')
 
         #add password stuff here, encrypting and uploading
@@ -210,7 +210,7 @@ class Login(Resource):
         #need to add password encrypting, and comparison
 
         if _account_login:
-            if validate_email(_account_login):
+            if validate_email(str(_account_login)):
                 cursor = db.accounts.find_one({'email': _account_login})
             else:
                 cursor = db.accounts.find_one({'username': _account_login})
