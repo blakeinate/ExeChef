@@ -224,10 +224,10 @@ class Login(Resource):
             _refresh_token = create_refresh_token(identity=cursor.get('username'))
             bson_to_json = dumps(cursor)
             true_json_data = json.loads(bson_to_json)
+            true_json_data['access_token'] = _access_token
+            true_json_data['refresh_token'] = _refresh_token
             resp = jsonify({
-                'user' : true_json_data,
-                'access_token': _access_token,
-                'refresh_token': _refresh_token
+                'user': true_json_data
             })
             resp.status_code = 200
             return resp
@@ -283,7 +283,7 @@ class Favorites(Resource):
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': _account_name})
         if cursor == None:
-            abort(400, message='No account found associated with provided access token.')
+            abort(400, message='No user found associated with provided access token.')
         recipes = []
         for recipe_id in cursor.get('favorites'):
             recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
@@ -307,7 +307,7 @@ class User_Recipes(Resource):
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': _account_name})
         if cursor == None:
-            abort(400, message='No account found associated with provided access token.')
+            abort(400, message='No user found associated with provided access token.')
         recipes = []
         for recipe_id in cursor.get('created'):
             recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
@@ -372,7 +372,7 @@ class Update_Recipe(Resource):
         _account_name = get_jwt_identity()
         users_account = db.accounts.find_one({'username': _account_name})
         if recipe_id not in users_account['created']:
-            abort(403, message='Recipe is owned by another user. Modifiations are not allowed.')
+            abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
 
         to_update = {}
         #removes stuff we don't want to update and updates modified date

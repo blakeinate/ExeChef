@@ -18,6 +18,7 @@ accounts database structure
 recipes database structure
 {
     "name" : "cool recipe",
+    "image_name": "securefilename.jpeg",
     "tags": ["food", "Mexican"],
     "steps" : ["heat oven", "put food in", "eat the food"],
     "author" : "blakeb",
@@ -44,7 +45,7 @@ A POST request to the /CreateAccount should be made.
 Returns:
 {
   "data": {
-    "account": {
+    "user": {
       "_id": {
         "$oid": "5a80e397485b9265f90852db"
       },
@@ -85,8 +86,9 @@ A POST request to /Login should be made.
 Returns: if provided password correct
 {
   "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzMTRhOWUwZC1kMGE0LTQ2ZWEtOTZiMy1lMTU3ZGVjY2Y5NzIiLCJleHAiOjE1MTk4NjU5NTksImZyZXNoIjpmYWxzZSwiaWF0IjoxNTE5ODY1MDU5LCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTE5ODY1MDU5LCJpZGVudGl0eSI6Im1vb3NleSJ9.qTT-bCVTC07Epe87KoJyvWq5RNKowRgy0PFL1nUKGZA",
-    "account": {
+    "user": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzMTRhOWUwZC1kMGE0LTQ2ZWEtOTZiMy1lMTU3ZGVjY2Y5NzIiLCJleHAiOjE1MTk4NjU5NTksImZyZXNoIjpmYWxzZSwiaWF0IjoxNTE5ODY1MDU5LCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTE5ODY1MDU5LCJpZGVudGl0eSI6Im1vb3NleSJ9.qTT-bCVTC07Epe87KoJyvWq5RNKowRgy0PFL1nUKGZA",
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNDI2Njg2ZC05MjU2LTRhYmYtOGFjMi1lMzBjNzZkOTIwOGUiLCJleHAiOjE1MjI0NTcwNTksImlhdCI6MTUxOTg2NTA1OSwidHlwZSI6InJlZnJlc2giLCJuYmYiOjE1MTk4NjUwNTksImlkZW50aXR5IjoibW9vc2V5In0.tHXR6Ebf9AwkXoNj4WRMNjuN6NfGdqDkkQN7xX6AzNk"
       "_id": {
         "$oid": "5a80e397485b9265f90852db"
       },
@@ -98,7 +100,6 @@ Returns: if provided password correct
       "password": "datboi",
       "username": "moosey"
     },
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNDI2Njg2ZC05MjU2LTRhYmYtOGFjMi1lMzBjNzZkOTIwOGUiLCJleHAiOjE1MjI0NTcwNTksImlhdCI6MTUxOTg2NTA1OSwidHlwZSI6InJlZnJlc2giLCJuYmYiOjE1MTk4NjUwNTksImlkZW50aXR5IjoibW9vc2V5In0.tHXR6Ebf9AwkXoNj4WRMNjuN6NfGdqDkkQN7xX6AzNk"
   }
 }
 Requires: username or email and password in the following format
@@ -183,13 +184,13 @@ Alternate returns:
 ---------------------------------------------------------------
 
 
-get all accounts
+get all users
 (this will be removed in final version, or made for only admin if implemented)
-A GET request to the /Accounts should be made.
+A GET request to the /Users should be made.
 Returns:
   {
     'data':{
-        "accounts": [
+        "users": [
           {
             "_id": {
               "$oid": "5a7cc9db485b921fc97aff9e"
@@ -225,12 +226,12 @@ Returns:
   ---------------------------------------------------------------
 
 
-get current account
-A GET request to the /Account should be made.
+get current user
+A GET request to the /User should be made.
 Returns: if valid JWT:
   {
     'data':{
-        "account": {
+        "user": {
           "_id": {
             "$oid": "5a7cc9db485b921fc97aff9e"
           },
@@ -253,7 +254,7 @@ Alternate returns:
     }
   if cannot find account for the access token:
   if blacklisting failed:
-    400, {'message':'No account found associated with provided access token.'}
+    400, {'message':'No user found associated with provided access token.'}
 
 
 ---------------------------------------------------------------
@@ -277,6 +278,9 @@ Requires: recipe information in the following format:
     "private": "True",
     "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
   }
+  OPTIONAL:
+    passing a file "file" with the json will upload it as an image associated
+    with the recipe
 
 
   Header in the following format:
@@ -340,6 +344,7 @@ Returns: list of recipes in the following format:
             },
             "author": "BlakeB",
             "tags": ["food"],
+            "image_name": "securefilename.jpeg",
             "created_date": {
               "$date": 1518110334999
             },
@@ -381,6 +386,7 @@ Returns: a recipe in the following format:
           },
           "author": "BlakeB",
           "tags": ["food"],
+          "image_name": "securefilename.jpeg",
           "created_date": {
             "$date": 1518110334999
           },
@@ -463,8 +469,8 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if access token does not relate to active account:
-    400, {'message':'No account found associated with provided access token.'}
+  if access token does not relate to active user:
+    400, {'message':'No user found associated with provided access token.'}
 
 ---------------------------------------------------------------
 
@@ -516,8 +522,8 @@ Alternate returns:
     "error": "Authorization Required",
     "status_code": 401
     }
-  if access token does not relate to active account:
-    400, {'message':'No account found associated with provided access token.'}
+  if access token does not relate to active user:
+    400, {'message':'No user found associated with provided access token.'}
 
 
 
