@@ -58,7 +58,7 @@ class TestCreationMethods(unittest.TestCase):
         #test valid creation
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'True',
                   'ingredients': [
@@ -73,7 +73,7 @@ class TestCreationMethods(unittest.TestCase):
         #catch no recipe name
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {
                   'private': 'True',
                   'ingredients': [
@@ -88,7 +88,7 @@ class TestCreationMethods(unittest.TestCase):
         #catch no private
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'ingredients': [
                       {'name': 'someingredient',
@@ -102,7 +102,7 @@ class TestCreationMethods(unittest.TestCase):
         #catch no ingredients
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'True',
                   'steps': ['do cool stuff', 'do more stuff']}
@@ -114,7 +114,7 @@ class TestCreationMethods(unittest.TestCase):
         #catch no steps
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'True',
                   'ingredients': [
@@ -130,16 +130,16 @@ class TestDataAccess(unittest.TestCase):
     def test_current_account_retrieval(self):
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        response = requests.get('http://localhost:5000/Account', headers=header)
+        response = requests.get('http://localhost:5000/User', headers=header)
         self.assertEqual(response.status_code, 200)
 
     def test_public_recipe_retrieval_by_id(self):
         #test recipe retrieval for public recipe
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'False',
                   'ingredients': [
@@ -148,7 +148,7 @@ class TestDataAccess(unittest.TestCase):
                   'steps': ['do cool stuff', 'do more stuff']}
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
-        recipe_id = response.json().get('data').get('id')
+        recipe_id = response.json().get('id')
         response = requests.get('http://localhost:5000/Recipes/'+str(recipe_id))
         self.assertEqual(response.status_code, 200)
 
@@ -156,7 +156,7 @@ class TestDataAccess(unittest.TestCase):
         #check that private recipe cannot be viewed without authorization
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'True',
                   'ingredients': [
@@ -165,7 +165,7 @@ class TestDataAccess(unittest.TestCase):
                   'steps': ['do cool stuff', 'do more stuff']}
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
-        recipe_id = response.json().get('data').get('id')
+        recipe_id = response.json().get('id')
         response = requests.get('http://localhost:5000/Recipes/'+str(recipe_id))
         self.assertEqual(response.status_code, 403)
 
@@ -173,7 +173,7 @@ class TestDataAccess(unittest.TestCase):
         #if you private recipe and creator should be able to view
         requests.post('http://localhost:5000/CreateAccount', json={'username': 'testuser', 'password':'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login', json={'login': 'testuser', 'password':'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         recipe = {'name': 'testrecipe',
                   'private': 'True',
                   'ingredients': [
@@ -182,7 +182,7 @@ class TestDataAccess(unittest.TestCase):
                   'steps': ['do cool stuff', 'do more stuff']}
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
-        recipe_id = response.json().get('data').get('id')
+        recipe_id = response.json().get('id')
         response = requests.get('http://localhost:5000/Recipes/'+str(recipe_id), headers=header)
         self.assertEqual(response.status_code, 200)
 
@@ -197,7 +197,7 @@ class TestDataAccess(unittest.TestCase):
                       json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login',
                                        json={'login': 'testuser', 'password': 'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.get('http://localhost:5000/Favorites', headers=header)
         self.assertEqual(response.status_code, 200)
@@ -208,7 +208,7 @@ class TestDataAccess(unittest.TestCase):
                       json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login',
                                        json={'login': 'testuser', 'password': 'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
         response = requests.get('http://localhost:5000/UserRecipes', headers=header)
         self.assertEqual(response.status_code, 200)
@@ -219,7 +219,7 @@ class TestDataAccess(unittest.TestCase):
                       json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login',
                                        json={'login': 'testuser', 'password': 'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         tag1 = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         tag2 = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
@@ -232,8 +232,8 @@ class TestDataAccess(unittest.TestCase):
                   'steps': ['do cool stuff', 'do more stuff']}
         header = {'Authorization': 'Bearer ' + str(access_token)}
         requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
-        response = requests.get('http://localhost:5000/SearchTags/'+tag1 + ',' + tag2)
-        recipes = response.json().get('data').get('recipes')
+        response = requests.get('http://localhost:5000/SearchTags/'+tag1)
+        recipes = response.json().get('recipes')
         self.assertEqual(True, (recipes != None))
 
     def test_private_recipe_retrieval_by_tags(self):
@@ -242,7 +242,7 @@ class TestDataAccess(unittest.TestCase):
                       json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login',
                                        json={'login': 'testuser', 'password': 'somepassword'})
-        access_token = login_response.json().get('data').get('access_token')
+        access_token = login_response.json().get('access_token')
         tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         recipe = {'name': 'testrecipe',
                   'private': 'True',
@@ -254,8 +254,8 @@ class TestDataAccess(unittest.TestCase):
         header = {'Authorization': 'Bearer ' + str(access_token)}
         requests.post('http://localhost:5000/CreateRecipe', json=recipe, headers=header)
         response = requests.get('http://localhost:5000/SearchTags/'+tag)
-        recipes = response.json().get('data').get('recipes')
-        self.assertEqual(recipes, None)
+        check_empty = response.json().get('recipes')
+        self.assertEqual(0, len(check_empty))
 
 if __name__ == "__main__":
     unittest.main()

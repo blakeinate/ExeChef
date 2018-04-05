@@ -4,7 +4,7 @@ from flask import jsonify, Response
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     jwt_refresh_token_required, create_refresh_token,
-    get_jwt_identity, get_raw_jwt
+    get_jwt_identity, get_raw_jwt, jwt_optional
 )
 from pymongo import MongoClient
 from bson.json_util import dumps, loads
@@ -336,6 +336,7 @@ class Recipes(Resource):
 
 #returns a single recipe
 class Recipe(Resource):
+    @jwt_optional
     def get(self, recipe_id):
         db = client.exechef
         cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
@@ -475,7 +476,7 @@ class Search_Tags(Resource):
     def get(self, tag_str):
         db = client.exechef
         #split string and remove non alphanumeric
-        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECase)} for string in tag_str.split(',')]
+        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split(',')]
         cursor = db.recipes.find({'$or': tag_list, 'private': 'False'})
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
