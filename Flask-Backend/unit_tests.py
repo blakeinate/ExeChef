@@ -5,7 +5,6 @@ import random
 import app
 from pymongo import MongoClient
 
-
 client = MongoClient()
 
 class TestCreationMethods(unittest.TestCase):
@@ -30,9 +29,9 @@ class TestCreationMethods(unittest.TestCase):
     def test_account_creation_email_in_use(self):
         #catch if email already in use
         email_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '@gmail.com'
-        requests.post('http://localhost:5000/CreateAccount', json={'username': 'testusername', 'password': 'somepassword', 'email': email_name})
+        requests.post('http://localhost:5000/CreateAccount', json={'username': 'testusername', 'password': 'somepassword', 'email': 'meep@gmail.com'})
         username = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-        response = requests.post('http://localhost:5000/CreateAccount', json={'username': username, 'password': 'somepassword', 'email': email_name})
+        response = requests.post('http://localhost:5000/CreateAccount', json={'username': username, 'password': 'somepassword', 'email': 'meep@gmail.com'})
         self.assertEqual(response.status_code, 422)
 
     def test_account_creation_no_username(self):

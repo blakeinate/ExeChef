@@ -71,7 +71,7 @@ def allowed_file(filename):
 
 
 #uploads image to server and returns secure filename
-def upload_image(self, file):
+def upload_image(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         #make sure filename is unique in folder
@@ -166,15 +166,14 @@ class Create_Account(Resource):
             abort(422, message='The provided password is invalid.')
         if not validate_email(str(_account_email)):
             abort(422, message='The provided email is invalid.')
-
         #add password stuff here, encrypting and uploading
 
         #check if username exists
-        cursor = db.accounts.find_one({'username': _account_name})
+        cursor = db.accounts.find_one({'username': str(_account_name)})
         if cursor != None:
             abort(422, message='The username provided is already in use.')
 
-        cursor2 = db.accounts.find_one({'email': _account_email})
+        cursor2 = db.accounts.find_one({'email': str(_account_email)})
         if cursor2 != None:
             abort(422, message='The email provided is already in use.')
 
@@ -210,9 +209,9 @@ class Login(Resource):
 
         if _account_login:
             if validate_email(str(_account_login)):
-                cursor = db.accounts.find_one({'email': _account_login})
+                cursor = db.accounts.find_one({'email': str(_account_login)})
             else:
-                cursor = db.accounts.find_one({'username': _account_login})
+                cursor = db.accounts.find_one({'username': str(_account_login)})
         else:
             abort(422, message='Please provide a valid username/email.')
 
@@ -281,7 +280,7 @@ class Favorites(Resource):
         db = client.exechef
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': _account_name})
+        cursor = db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
@@ -305,7 +304,7 @@ class User_Recipes(Resource):
         db = client.exechef
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': _account_name})
+        cursor = db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
@@ -371,8 +370,8 @@ class Update_Recipe(Resource):
 
         #verifies user attempting to modify recipe owns the recipe
         _account_name = get_jwt_identity()
-        users_account = db.accounts.find_one({'username': _account_name})
-        if recipe_id not in users_account['created']:
+        users_account = db.accounts.find_one({'username': str(_account_name)})
+        if recipe_id not in users_account.get('created'):
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
 
         to_update = {}
