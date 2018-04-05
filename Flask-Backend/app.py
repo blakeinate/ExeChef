@@ -98,7 +98,7 @@ class Users(Resource):
         cursor = db.accounts.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data': {'users': true_json_data}})
+        resp = jsonify({'users': true_json_data})
         resp.status_code = 200
         return resp
 
@@ -113,7 +113,7 @@ class User(Resource):
             abort(400, message='No account found associated with provided access token.')
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data': {'user': true_json_data}})
+        resp = jsonify({'user': true_json_data})
         resp.status_code = 200
         return resp
 
@@ -191,7 +191,7 @@ class Create_Account(Resource):
         bson_to_json = dumps(created)
         true_json_data = json.loads(bson_to_json)
         #return the id of the new account
-        resp = jsonify({'data': {'user': true_json_data}})
+        resp = jsonify({'user': true_json_data})
         resp.status_code = 200
         return resp
 
@@ -243,7 +243,7 @@ class Refresh(Resource):
         try:
             current_user = get_jwt_identity()
             _access_token = create_access_token(identity=current_user)
-            resp = jsonify({'data': {'access_token': _access_token}})
+            resp = jsonify({'access_token': _access_token})
             resp.status_code = 200
             return resp
         except Exception as e:
@@ -293,7 +293,7 @@ class Favorites(Resource):
 
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'recipes':true_json_data}})
+        resp = jsonify({'recipes':true_json_data})
         resp.status_code = 200
         return resp
 
@@ -317,7 +317,7 @@ class User_Recipes(Resource):
 
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'recipes':true_json_data}})
+        resp = jsonify({'recipes':true_json_data})
         resp.status_code = 200
         return resp
 
@@ -329,7 +329,7 @@ class Recipes(Resource):
         cursor = db.recipes.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'recipes': true_json_data}})
+        resp = jsonify({'recipes': true_json_data})
         resp.status_code = 200
         return resp
 
@@ -345,7 +345,7 @@ class Recipe(Resource):
             abort(403, message='Private recipe is owned by another user.')
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'recipe': true_json_data}})
+        resp = jsonify({'recipe': true_json_data})
         resp.status_code = 200
         return resp
 
@@ -441,7 +441,7 @@ class Create_Recipe(Resource):
         #add recipe to user's created recipes
         db.accounts.update({'username': _account_name}, {'$push': {'created': str(result.inserted_id)}})
         #return the id of the new recipe
-        resp = jsonify({'data':{'id': str(result.inserted_id)}})
+        resp = jsonify({'id': str(result.inserted_id)})
         resp.status_code = 201
         return resp
 
@@ -479,7 +479,7 @@ class Search_Tags(Resource):
         cursor = db.recipes.find({'$or': tag_list, 'private': 'False'})
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'data':{'recipes': true_json_data}})
+        resp = jsonify({'recipes': true_json_data})
         resp.status_code = 200
         return resp
 
