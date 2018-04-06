@@ -14,15 +14,17 @@ export class ApiService {
     private jwtService: JwtService
   ) {}
 
-  private setHeaders(): Headers {
+  private setHeaders(refresh: Boolean = false): Headers {
     let headersConfig = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    // let token = this.jwtService.getToken();
-    // if(token){
-    //   headersConfig['Authorization'] = `Token ${token}`;
-    // }
+    let token = this.jwtService.getToken();
+
+    console.log("coming from api service : token -->",token);
+    if(token){
+      headersConfig['Authorization'] = `Bearer ${token}`;
+    }
 
     return new Headers(headersConfig);
   }
@@ -42,6 +44,13 @@ export class ApiService {
    return this.http.get(`${environment.api_url}${path}`, { headers: this.setHeaders(), search: params })
     .catch(this.formatErrors)
     .map((res:Response) => res.json());
-}
+  }
+  
+  put(path: string, body: Object = {}): Observable<any> {
+    return this.http.put( `${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
+        .catch(this.formatErrors)
+        .map((res:Response) => res.json());
+  }
+
 
 }
