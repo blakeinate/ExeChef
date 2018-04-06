@@ -119,11 +119,12 @@ class User(Resource):
 
 
 class Update_Password(Resource):
+    @jwt_required
     def put(self):
         db = client.exechef
         json_data = request.get_json(force=True)
 
-        _account_name = json_data.get('username')
+        _account_name = get_jwt_identity()
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
         if not _account_name:
@@ -136,7 +137,7 @@ class Update_Password(Resource):
         cursor = db.accounts.find_one({'username': _account_name})
         if cursor['password'] == _old_password:
             result = db.accounts.update_one(
-                {'username':_account_name},
+                {'username': _account_name},
                 {
                     '$set': {
                         'password': _new_password
@@ -184,7 +185,8 @@ class Create_Account(Resource):
             'password': _account_password,
             'email': _account_email,
             'favorites': [],
-            'created' : []
+            'created' : [],
+            'bio': '',
         })
         created = db.accounts.find_one({'username': _account_name})
         bson_to_json = dumps(created)
@@ -194,6 +196,34 @@ class Create_Account(Resource):
         resp.status_code = 200
         return resp
 
+
+class Update_Bio(Resource):
+    @jwt_required
+    def put(self):
+        db = client.exechef
+        json_data = request.get_json(force=True)
+        bio = json_data.get('bio')
+        _account_name = get_jwt_identity()
+
+        if not bio:
+            abort(422, message='No bio provided.')
+        if not _account_name:
+            abort(422, message='The provided username is invalid.')
+
+        #return list of recipes from user {'userFavorites': []}
+        cursor = db.accounts.find_one({'username': str(_account_name)})
+
+        result = db.accounts.update_one(
+            {'username': str(_account_name)},
+            {
+                '$set': {'bio': str(bio)}
+            }
+        )
+
+        if result.modified_count == 1:
+            return Response(status=200)
+        else:
+            abort(500, message='Unable to communicate with database and/or account modification failed.')
 
 
 #checks if a username and password match
@@ -497,6 +527,7 @@ api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User')
+api.add_resource(Update_Bio, '/UpdateBio')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')
