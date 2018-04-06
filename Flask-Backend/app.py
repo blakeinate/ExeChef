@@ -119,11 +119,15 @@ class User(Resource):
 
     @jwt_required
     def put(self):
-        acceptable_entries = ['bio', 'email']
+        acceptable_entries = ['bio', 'email']#, 'old_password', 'new_password', 'favorites']
         db = client.exechef
         json_data = request.get_json(force=True)
         bio = json_data.get('bio')
         email = json_data.get('email')
+        _old_password = json_data.get('old_password')
+        _new_password = json_data.get('new_password')
+        favorite = json_data.get('favorite')
+        followed = json_data.get('followed')
         _account_name = get_jwt_identity()
 
         if not _account_name:
@@ -135,13 +139,43 @@ class User(Resource):
             if key in acceptable_entries:
                 to_update[key] = value
 
+        #make sure both passwords provided or none at all, otherwise send back we need both of them
+        passwords_provided = False
+        if _old_password:
+            if _new_password:
+                passwords_provided = True
+            else:
+                abort(422, message='The provided new password is invalid.')
+        if _new_password:
+            if _old_password:
+                passwords_provided = True
+            else:
+                abort(422, message='The provided old password is invalid.')
+
+        #make sure old pass provided matches stored password
+        if passwords_provided:
+            cursor = db.accounts.find_one({'username': _account_name})
+            if cursor['password'] == _old_password:
+                to_update['password'] = _new_password
+            else:
+                abort(422, 'The current password does not match the password provided.')
+
+        new_favorite = None
+        if favorite:
+            new_favorite = str(favorite)
+
+        new_follow = None
+        if followed:
+            new_follow = followed
+
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
 
         result = db.accounts.update_one(
             {'username': str(_account_name)},
             {
-                '$set': to_update
+                '$set': to_update,
+                '$push': {'favorites': new_favorite, 'followed': new_follow},
             }
         )
 
