@@ -4,4 +4,5 @@ export class User{
   favorites: string[];
   created: string[];
   access_token: string;
+  refresh_token: string;
 }
