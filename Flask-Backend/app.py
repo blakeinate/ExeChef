@@ -104,17 +104,35 @@ class Users(Resource):
 
 
 class User(Resource):
-    @jwt_required
-    def get(self):
+    @jwt_optional
+    def get(self, user_id=None):
         _account_name = get_jwt_identity()
         db = client.exechef
-        cursor = db.accounts.find_one({'username': _account_name})
-        if cursor == None:
-            abort(400, message='No account found associated with provided access token.')
-        bson_to_json = dumps(cursor)
-        true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'user': true_json_data})
-        resp.status_code = 200
+        current_user = None
+        if _account_name:
+            current_user = db.accounts.find_one({'username': _account_name})
+        if user_id:
+            provided_user = db.accounts.find_one({'id': str(user_id)}, {'password': 0, 'email': 0})
+            if not provided_user:
+                abort(400, message='No account found associated with provided id.')
+            bson_to_json = dumps(provided_user)
+            true_json_data = json.loads(bson_to_json)
+            if current_user:
+                if provided_user.get('_id').get('$oid') in current_user.get('followed'):
+                    followed = True
+                else:
+                    followed = False
+                true_json_data['followed'] = followed
+            resp = jsonify({'user': true_json_data})
+            resp.status_code = 200
+        else:
+            if current_user == None:
+                abort(400, message='No account found associated with provided access token.')
+            bson_to_json = dumps(current_user)
+            true_json_data = json.loads(bson_to_json)
+            resp = jsonify({'user': true_json_data})
+            resp.status_code = 200
+
         return resp
 
     @jwt_required
@@ -122,8 +140,6 @@ class User(Resource):
         acceptable_entries = ['bio', 'email']#, 'old_password', 'new_password', 'favorites']
         db = client.exechef
         json_data = request.get_json(force=True)
-        bio = json_data.get('bio')
-        email = json_data.get('email')
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
         favorite = json_data.get('favorite')
@@ -571,7 +587,7 @@ api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
-api.add_resource(User, '/User')
+api.add_resource(User, '/User/<user_id>')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')

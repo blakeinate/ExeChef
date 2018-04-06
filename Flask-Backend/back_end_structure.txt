@@ -13,6 +13,7 @@ accounts database structure
     'email': 'blakeb@gmail.com',
     'favorites': ['someid', 'someid'],
     'created' : ['someid', 'someid']
+    'followed': ['someid', 'someid']
 }
 
 recipes database structure
@@ -122,7 +123,7 @@ Alternate returns:
 
 
 
-update user bio and/or email
+update user bio, email, favorite, or password
 
 A PUT request to /User should be made.
 Returns: 200 if JWT access token provided:
@@ -134,6 +135,7 @@ Returns: 200 if JWT access token provided:
           },
           "created": [],
           "favorites": [],
+          "followed": [],
           "password": "meepmeep",
           "username": "blakeb"
         }
@@ -145,8 +147,15 @@ Requires:
     "Authorization: Bearer <access token here>"
 
   json data in following format :
-  (note: can provide email or bio if only one needs updating)
-    {"bio": "some bio here", "email": "blakeb@gmail.com"}
+  (note: can provide any combination of these as needed)
+    {
+     "bio": "some bio here",
+     "email": "blakeb@gmail.com",
+     "old_password":"password here",
+     "new_password: "new password here"
+     "favorite": "some recipe id"
+     "followed": "some user id"
+     }
 
 Alternate returns:
   if no access token provided:
