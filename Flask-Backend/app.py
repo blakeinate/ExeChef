@@ -117,6 +117,44 @@ class User(Resource):
         resp.status_code = 200
         return resp
 
+    @jwt_required
+    def put(self):
+        acceptable_entries = ['bio', 'email']
+        db = client.exechef
+        json_data = request.get_json(force=True)
+        bio = json_data.get('bio')
+        email = json_data.get('email')
+        _account_name = get_jwt_identity()
+
+        if not _account_name:
+            abort(422, message='The provided username is invalid.')
+
+        to_update = {}
+        #removes stuff we don't want to update and updates modified date
+        for key, value in json_data.iteritems():
+            if key in acceptable_entries:
+                to_update[key] = value
+
+        #return list of recipes from user {'userFavorites': []}
+        cursor = db.accounts.find_one({'username': str(_account_name)})
+
+        result = db.accounts.update_one(
+            {'username': str(_account_name)},
+            {
+                '$set': to_update
+            }
+        )
+
+        if result.modified_count == 1:
+            cursor = db.accounts.find_one({'username': str(_account_name)})
+            bson_to_json = dumps(cursor)
+            true_json_data = json.loads(bson_to_json)
+            resp = jsonify({'user': true_json_data})
+            resp.status_code = 200
+            return resp
+        else:
+            abort(500, message='Unable to communicate with database and/or account modification failed.')
+
 
 class Update_Password(Resource):
     @jwt_required
@@ -197,33 +235,6 @@ class Create_Account(Resource):
         return resp
 
 
-class Update_Bio(Resource):
-    @jwt_required
-    def put(self):
-        db = client.exechef
-        json_data = request.get_json(force=True)
-        bio = json_data.get('bio')
-        _account_name = get_jwt_identity()
-
-        if not bio:
-            abort(422, message='No bio provided.')
-        if not _account_name:
-            abort(422, message='The provided username is invalid.')
-
-        #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': str(_account_name)})
-
-        result = db.accounts.update_one(
-            {'username': str(_account_name)},
-            {
-                '$set': {'bio': str(bio)}
-            }
-        )
-
-        if result.modified_count == 1:
-            return Response(status=200)
-        else:
-            abort(500, message='Unable to communicate with database and/or account modification failed.')
 
 
 #checks if a username and password match
@@ -527,7 +538,6 @@ api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User')
-api.add_resource(Update_Bio, '/UpdateBio')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')

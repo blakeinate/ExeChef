@@ -117,6 +117,88 @@ Alternate returns:
     422, {'message':'Please provide a valid username/email.'}
 
 
+---------------------------------------------------------------
+
+
+
+
+update user bio and/or email
+
+A PUT request to /User should be made.
+Returns: 200 if JWT access token provided:
+  {
+    'data':{
+        "user": {
+          "_id": {
+            "$oid": "5a7cc9db485b921fc97aff9e"
+          },
+          "created": [],
+          "favorites": [],
+          "password": "meepmeep",
+          "username": "blakeb"
+        }
+    }
+  }
+
+Requires:
+  JWT Header in the following format:
+    "Authorization: Bearer <access token here>"
+
+  json data in following format :
+  (note: can provide email or bio if only one needs updating)
+    {"bio": "some bio here", "email": "blakeb@gmail.com"}
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if JWT access token has been revoked:
+    {"msg": "Token has been revoked"}
+
+  if no bio provided:
+    422, {'message': 'No bio provided'}
+
+  if any other error occurs, returns:
+    500, {'message': 'Unable to communicate with database and/or account modification failed.'}
+
+
+---------------------------------------------------------------
+
+update password
+A PUT request to /UpdatePassword should be made.
+Returns: 200 if JWT access token provided:
+
+
+Requires:
+  JWT Header in the following format:
+    "Authorization: Bearer <access token here>"
+
+  json data in following format:
+    {"old_password": "password", "new_password":"password"}
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if JWT access token has been revoked:
+    {"msg": "Token has been revoked"}
+
+  if password provided for current password does not match:
+    422,{'message': 'The current password does not match the password provided.'}
+  if no old password provided:
+    422, {'message': 'The provided old password is invalid.'}
+  if no new password provided:
+    422, {'message': 'The provided new password is invalid.'}
+
+  if any other error occurs, returns:
+    500, {'message': 'Unable to communicate with database and/or account modification failed.'}
+
 
 ---------------------------------------------------------------
 
