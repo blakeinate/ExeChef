@@ -118,7 +118,7 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if provided_user.get('_id').get('$oid') in current_user.get('followed'):
+                if provided_user.get('username') in current_user.get('followed'):
                     followed = True
                 else:
                     followed = False
@@ -182,7 +182,7 @@ class User(Resource):
 
         new_follow = None
         if followed:
-            new_follow = followed
+            new_follow = str(followed)
 
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
