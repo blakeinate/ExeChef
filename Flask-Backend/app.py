@@ -105,14 +105,14 @@ class Users(Resource):
 
 class User(Resource):
     @jwt_optional
-    def get(self, user_id=None):
+    def get(self, username=None):
         _account_name = get_jwt_identity()
         db = client.exechef
         current_user = None
         if _account_name:
             current_user = db.accounts.find_one({'username': _account_name})
-        if user_id:
-            provided_user = db.accounts.find_one({'id': str(user_id)}, {'password': 0, 'email': 0})
+        if username:
+            provided_user = db.accounts.find_one({'username': str(username)}, {'password': 0, 'email': 0})
             if not provided_user:
                 abort(400, message='No account found associated with provided id.')
             bson_to_json = dumps(provided_user)
@@ -587,7 +587,7 @@ api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
-api.add_resource(User, '/User/<user_id>')
+api.add_resource(User, '/User/<username>')
 api.add_resource(Update_Password, '/UpdatePassword')
 api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')
