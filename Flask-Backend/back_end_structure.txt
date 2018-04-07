@@ -154,7 +154,7 @@ Requires:
      "old_password":"password here",
      "new_password: "new password here"
      "favorite": "some recipe id"
-     "followed": "some user id"
+     "followed": "some username"
      }
 
 Alternate returns:
@@ -176,7 +176,7 @@ Alternate returns:
 
 ---------------------------------------------------------------
 
-update password
+update password (DEPRECATED, use PUT to /User instead)
 A PUT request to /UpdatePassword should be made.
 Returns: 200 if JWT access token provided:
 
@@ -321,7 +321,6 @@ get current user
 A GET request to the /User should be made.
 Returns: if valid JWT:
   {
-    'data':{
         "user": {
           "_id": {
             "$oid": "5a7cc9db485b921fc97aff9e"
@@ -331,7 +330,6 @@ Returns: if valid JWT:
           "password": "meepmeep",
           "username": "blakeb"
         }
-    }
   }
 Requires: JWT Header in the following format:
   "Authorization: Bearer <access token here>"
@@ -348,16 +346,49 @@ Alternate returns:
     400, {'message':'No user found associated with provided access token.'}
 
 
+  ---------------------------------------------------------------
+
+
+get user by username without sensitive information
+A GET request to the /User/<username> should be made.
+
+
+Returns: if valid JWT:
+  {
+    "user": {
+      "_id": {
+        "$oid": "5a7cc9db485b921fc97aff9e"
+      },
+      "created": [],
+      "favorites": [],
+      "username": "blakeb",
+      "followed": "True"
+    }
+  }
+  NOTE: the "followed" option will only be passed if a JWT header is also provided
+  this will compare the current logged in users followed list to the username provided in the URL
+Requires: Optional JWT Header in the following format:
+  "Authorization: Bearer <access token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  if cannot find account for the access token:
+  if blacklisting failed:
+    400, {'message':'No user found associated with provided access token.'}
+
 ---------------------------------------------------------------
 
 
 create a recipe
-A POST request to the /CreateRecipe should be made.
+A POST request to the /Recipe should be made.
 Returns: recipe id in the following format:
   {
-    'data':{
       "id": "5a7ce708485b9274f77a215a"
-    }
   }
 Requires: recipe information in the following format:
           (note: author added from username associated with JWT)
@@ -393,7 +424,7 @@ Alternate returns:
 
 
 update a recipe
-A POST request to the /UpdateRecipe should be made.
+A PUT request to the /Recipe should be made.
 Returns:
   200
 Requires: recipe information in the following format (fields besides id can be missing, only updates fields provided):
@@ -467,7 +498,7 @@ Returns: list of recipes in the following format:
 
 
 get a single recipe
-A GET request to the /Recipes/<recipe_id> should be made.
+A GET request to the /Recipe/<recipe_id> should be made.
 Returns: a recipe in the following format:
   {
     'data':{
@@ -503,6 +534,10 @@ Returns: a recipe in the following format:
     }
   }
 Requires: a recipe_id to be passed at the end of the route
+    Optional: JWT Header in the following format:
+  "Authorization: Bearer <access token here>"
+   This is required if a private recipe needs to be accessed.
+   The provided token must be associated with the author of recipe.
 Alternate returns:
   if id is incorrect:
     400, {'message':'No recipe found with the provided recipe ID.'}
@@ -623,11 +658,8 @@ Alternate returns:
 
 
 delete a recipe
-A POST request to the /DeleteRecipe/<recipe_id> should be made.
-Returns:
-  {
-    "deleted": True
-  }
+A DELETE request to the /Recipe/<recipe_id> should be made.
+Returns: 200
 Requires: The JWT token provided is associated with the account that owns the recipe.
 
 

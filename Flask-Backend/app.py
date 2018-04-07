@@ -205,42 +205,6 @@ class User(Resource):
         else:
             abort(500, message='Unable to communicate with database and/or account modification failed.')
 
-
-class Update_Password(Resource):
-    @jwt_required
-    def put(self):
-        db = client.exechef
-        json_data = request.get_json(force=True)
-
-        _account_name = get_jwt_identity()
-        _old_password = json_data.get('old_password')
-        _new_password = json_data.get('new_password')
-        if not _account_name:
-            abort(422, message='The provided username is invalid.')
-        if not _old_password:
-            abort(422, message='The provided old password is invalid.')
-        if not _new_password:
-            abort(422, message='The provided new password is invalid.')
-
-        cursor = db.accounts.find_one({'username': _account_name})
-        if cursor['password'] == _old_password:
-            result = db.accounts.update_one(
-                {'username': _account_name},
-                {
-                    '$set': {
-                        'password': _new_password
-                    }
-                }
-            )
-            if result.modified_count == 1:
-                return Response(status=200)
-            else:
-                abort(500, message='Password could not be updated. Database could not modify the specified account.')
-        else:
-            abort(422,'The current password does not match the password provided.')
-
-
-class Create_Account(Resource):
     def post(self):
         db = client.exechef
         json_data = request.get_json(force=True)
@@ -285,6 +249,38 @@ class Create_Account(Resource):
         return resp
 
 
+class Update_Password(Resource):
+    @jwt_required
+    def put(self):
+        db = client.exechef
+        json_data = request.get_json(force=True)
+
+        _account_name = get_jwt_identity()
+        _old_password = json_data.get('old_password')
+        _new_password = json_data.get('new_password')
+        if not _account_name:
+            abort(422, message='The provided username is invalid.')
+        if not _old_password:
+            abort(422, message='The provided old password is invalid.')
+        if not _new_password:
+            abort(422, message='The provided new password is invalid.')
+
+        cursor = db.accounts.find_one({'username': _account_name})
+        if cursor['password'] == _old_password:
+            result = db.accounts.update_one(
+                {'username': _account_name},
+                {
+                    '$set': {
+                        'password': _new_password
+                    }
+                }
+            )
+            if result.modified_count == 1:
+                return Response(status=200)
+            else:
+                abort(500, message='Password could not be updated. Database could not modify the specified account.')
+        else:
+            abort(422,'The current password does not match the password provided.')
 
 
 #checks if a username and password match
@@ -426,65 +422,6 @@ class Recipes(Resource):
 
 #returns a single recipe
 class Recipe(Resource):
-    @jwt_optional
-    def get(self, recipe_id):
-        db = client.exechef
-        cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
-        if cursor == None:
-            abort(400, message='No recipe found with the provided recipe ID.')
-        if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
-            abort(403, message='Private recipe is owned by another user.')
-        bson_to_json = dumps(cursor)
-        true_json_data = json.loads(bson_to_json)
-        resp = jsonify({'recipe': true_json_data})
-        resp.status_code = 200
-        return resp
-
-
-class Update_Recipe(Resource):
-    @jwt_required
-    def put(self):
-        #these are the fields we want to be able to update
-        acceptable_entries = [
-            'name',
-            'tags',
-            'steps',
-            'description',
-            'private',
-            'ingredients',
-        ]
-        db = client.exechef
-
-        json_data = request.get_json(force=True)
-
-        recipe_id = json_data['id']
-
-        #verifies user attempting to modify recipe owns the recipe
-        _account_name = get_jwt_identity()
-        users_account = db.accounts.find_one({'username': str(_account_name)})
-        if recipe_id not in users_account.get('created'):
-            abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
-
-        to_update = {}
-        #removes stuff we don't want to update and updates modified date
-        for key, value in json_data.iteritems():
-            if key in acceptable_entries:
-                to_update[key] = value
-        to_update['modified_date'] = datetime.now()
-
-        result = db.recipes.update_one(
-            {'_id': ObjectId(recipe_id)},
-            {
-                '$set': to_update
-            }
-        )
-        if result.modified_count == 1:
-            return Response(status=200)
-        else:
-            abort(500, message='Unable to communicate with database and/or recipe modification failed.')
-
-
-class Create_Recipe(Resource):
     @jwt_required
     def post(self):
         db = client.exechef
@@ -538,16 +475,69 @@ class Create_Recipe(Resource):
 
         #add password getting, encrypting, and comparison
 
+    @jwt_optional
+    def get(self, recipe_id):
+        db = client.exechef
+        cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+        if cursor == None:
+            abort(400, message='No recipe found with the provided recipe ID.')
+        if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
+            abort(403, message='Private recipe is owned by another user.')
+        bson_to_json = dumps(cursor)
+        true_json_data = json.loads(bson_to_json)
+        resp = jsonify({'recipe': true_json_data})
+        resp.status_code = 200
+        return resp
 
-class Delete_Recipe(Resource):
+    @jwt_required
+    def put(self):
+        # these are the fields we want to be able to update
+        acceptable_entries = [
+            'name',
+            'tags',
+            'steps',
+            'description',
+            'private',
+            'ingredients',
+        ]
+        db = client.exechef
+
+        json_data = request.get_json(force=True)
+
+        recipe_id = json_data['id']
+
+        # verifies user attempting to modify recipe owns the recipe
+        _account_name = get_jwt_identity()
+        users_account = db.accounts.find_one({'username': str(_account_name)})
+        if recipe_id not in users_account.get('created'):
+            abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
+
+        to_update = {}
+        # removes stuff we don't want to update and updates modified date
+        for key, value in json_data.iteritems():
+            if key in acceptable_entries:
+                to_update[key] = value
+        to_update['modified_date'] = datetime.now()
+
+        result = db.recipes.update_one(
+            {'_id': ObjectId(recipe_id)},
+            {
+                '$set': to_update
+            }
+        )
+        if result.modified_count == 1:
+            return Response(status=200)
+        else:
+            abort(500, message='Unable to communicate with database and/or recipe modification failed.')
+
     @jwt_required
     def delete(self, recipe_id):
         db = client.exechef
 
-        #change recipe_id to BSON id format
+        # change recipe_id to BSON id format
         recipe_id = ObjectId(recipe_id)
 
-        #verifies user attempting to delete recipe owns the recipe
+        # verifies user attempting to delete recipe owns the recipe
         _account_name = get_jwt_identity()
         users_account = db.accounts.find_one({'username': _account_name})
         if recipe_id not in users_account['created']:
@@ -558,6 +548,12 @@ class Delete_Recipe(Resource):
             return Response(status=200)
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
+
+
+
+
+
+
 
 
 #search all recipe fields by a string, return recipes with found string
@@ -587,16 +583,15 @@ api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
-api.add_resource(User, '/User/<username>')
+api.add_resource(User, '/User/<username>', '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
-api.add_resource(Create_Account, '/CreateAccount')
+#api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')
 api.add_resource(User_Recipes, '/UserRecipes')
 api.add_resource(Recipes, '/Recipes')
-api.add_resource(Recipe, '/Recipes/<recipe_id>')
-api.add_resource(Update_Recipe, '/UpdateRecipe')
-api.add_resource(Create_Recipe, '/CreateRecipe')
-api.add_resource(Delete_Recipe, '/DeleteRecipe/<recipe_id>')
+api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
+#api.add_resource(Create_Recipe, '/CreateRecipe')
+#api.add_resource(Delete_Recipe, '/DeleteRecipe/<recipe_id>')
 api.add_resource(Search_Tags, '/SearchTags/<tag_str>')
 
 
