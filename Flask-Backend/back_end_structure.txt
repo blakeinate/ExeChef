@@ -347,6 +347,90 @@ Alternate returns:
 
 
   ---------------------------------------------------------------
+get followed feed for user
+A GET request to the /Feed/<num_to_get> should be made. if no <num_to_get> provided, defaults to 10
+Returns: if valid JWT, returns num_to_get public recipes that are most recent from the users followers
+            if no JWT provided, returns num_to_get recent public recipes from all users:
+{
+  "recipes": [
+    {
+      "_id": {
+        "$oid": "5a7cdade485b925737ef6ef5"
+      },
+      "author": "BlakeB",
+      "category": "dank food",
+      "created_date": {
+        "$date": 1518110334999
+      },
+      "description": "this isi the best ting you will ever eat",
+      "ingredients": [
+        {
+          "amount": "tree-fitty",
+          "name": "dank",
+          "unit": "pounds"
+        }
+      ],
+      "modified_date": {
+        "$date": 1518110334999
+      },
+      "name": "dank recipe",
+      "private": "True",
+      "steps": [
+        "do cool stuff",
+        "do more cool stuff",
+        "eat that shit"
+      ]
+    },
+    {
+      "_id": {
+        "$oid": "5a7ce708485b9274f77a215a"
+      },
+      "author": "BlakeB",
+      "category": "dank food",
+      "created_date": {
+        "$date": 1518113448462
+      },
+      "description": "this isi the best ting you will ever eat",
+      "ingredients": [
+        {
+          "amount": "tree-fitty",
+          "name": "dank",
+          "unit": "pounds"
+        }
+      ],
+      "modified_date": {
+        "$date": 1518113448462
+      },
+      "name": "dank recipe",
+      "private": "True",
+      "steps": [
+        "do cool stuff",
+        "do more cool stuff",
+        "eat that shit"
+      ]
+    }
+  ]
+}
+Requires: JWT Header in the following format:
+  "Authorization: Bearer <access token here>"
+
+Alternate returns:
+  if no access token provided:
+    {
+    "description": "Request does not contain an access token",
+    "error": "Authorization Required",
+    "status_code": 401
+    }
+  any other error:
+  500, {'message':'some error here'}
+
+
+
+
+-----------------------------------------------------------------
+
+
+
 
 
 get user by username without sensitive information

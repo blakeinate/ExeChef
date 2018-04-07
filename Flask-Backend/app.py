@@ -260,7 +260,7 @@ class User(Resource):
             'password': _account_password,
             'email': _account_email,
             'favorites': [],
-            'created' : [],
+            'created': [],
             'bio': '',
         })
         created = db.accounts.find_one({'username': _account_name})
@@ -430,6 +430,26 @@ class User_Recipes(Resource):
         resp.status_code = 200
         return resp
 
+#get feed composed of followed accounts recent recipes
+class Followed_Feed(Resource):
+    @jwt_optional
+    def get(self, num_to_get = 10):
+        num_to_get = int(num_to_get)
+        db = client.exechef
+        _account_name = get_jwt_identity()
+        if _account_name:
+            followed = db.accounts.find_one({'username': str(_account_name)}).get('followed')
+            followed_list = []
+            for item in followed:
+                followed_list.append({'author': item})
+            recent_recipes = db.recipes.find({'$or': followed_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+        else:
+            recent_recipes = db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
+        bson_to_json = dumps(recent_recipes)
+        true_json_data = json.loads(bson_to_json)
+        resp = jsonify({'recipes': true_json_data})
+        resp.status_code = 200
+        return resp
 
 #returns list of all recipes
 class Recipes(Resource):
@@ -602,6 +622,7 @@ class Pagination(object):
 
 
 api.add_resource(Login, '/Login')
+api.add_resource(Followed_Feed, '/Feed/<num_to_get>', '/Feed')
 api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
