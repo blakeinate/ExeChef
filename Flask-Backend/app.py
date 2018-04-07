@@ -137,11 +137,12 @@ class User(Resource):
 
     @jwt_required
     def put(self):
-        acceptable_entries = ['bio', 'email']#, 'old_password', 'new_password', 'favorites']
+        acceptable_entries = ['bio']#, 'old_password', 'new_password', 'favorites']
         db = client.exechef
         json_data = request.get_json(force=True)
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
+        _account_email = json_data.get('email')
         favorite = json_data.get('favorite')
         followed = json_data.get('followed')
         _account_name = get_jwt_identity()
@@ -150,6 +151,17 @@ class User(Resource):
             abort(422, message='The provided username is invalid.')
 
         to_update = {}
+
+        if _account_email:
+            if validate_email(str(_account_email)):
+                cursor2 = db.accounts.find_one({'email': str(_account_email)})
+                if cursor2 != None:
+                    abort(422, message='The email provided is already in use.')
+                else:
+                    to_update['email'] = str(_account_email)
+            else:
+                abort(422, message='The provided email is invalid.')
+
         #removes stuff we don't want to update and updates modified date
         for key, value in json_data.iteritems():
             if key in acceptable_entries:
@@ -187,23 +199,34 @@ class User(Resource):
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
 
-        result = db.accounts.update_one(
-            {'username': str(_account_name)},
-            {
-                '$set': to_update,
-                '$push': {'favorites': new_favorite, 'followed': new_follow},
-            }
-        )
+        to_change = {}
+        if to_update:
+            to_change['$set'] = to_update
+        if new_favorite or new_follow:
+            to_change['$push'] = {}
+            if new_favorite:
+                to_change['$push']['favorites'] = new_favorite
+            if new_follow:
+                to_change['$push']['followed'] = new_follow
 
-        if result.modified_count == 1:
-            cursor = db.accounts.find_one({'username': str(_account_name)})
-            bson_to_json = dumps(cursor)
-            true_json_data = json.loads(bson_to_json)
-            resp = jsonify({'user': true_json_data})
-            resp.status_code = 200
-            return resp
+        if to_change:
+            result = db.accounts.update_one(
+                {'username': str(_account_name)},
+                to_change
+            )
+
+            if result.modified_count == 1:
+                cursor = db.accounts.find_one({'username': str(_account_name)})
+                bson_to_json = dumps(cursor)
+                true_json_data = json.loads(bson_to_json)
+                resp = jsonify({'user': true_json_data})
+                resp.status_code = 200
+                return resp
+            else:
+                abort(500, message='Unable to communicate with database and/or account modification failed.')
         else:
-            abort(500, message='Unable to communicate with database and/or account modification failed.')
+            abort(422, message='No data provided to update')
+
 
     def post(self):
         db = client.exechef
