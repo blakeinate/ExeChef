@@ -7,6 +7,8 @@ import 'rxjs/add/operator/catch';
 
 import { JwtService} from "./jwt.service";
 
+/// to do
+// add delete request for logout route.
 @Injectable()
 export class ApiService {
   constructor(
@@ -20,8 +22,9 @@ export class ApiService {
       'Accept': 'application/json',
     };
     let token = this.jwtService.getToken();
-
-    console.log("coming from api service : token -->",token);
+    if(refresh){
+      token = this.jwtService.getRefreshToken();
+    }
     if(token){
       headersConfig['Authorization'] = `Bearer ${token}`;
     }
@@ -40,12 +43,19 @@ export class ApiService {
         .map((res:Response) => res.json());
   }
 
+  postRefresh(path: string, body: Object = {}): Observable<any> {
+    console.log(JSON.stringify(body));
+    return this.http.post(`${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders(true) })
+        .catch(this.formatErrors)
+        .map((res:Response) => res.json());
+  }
+
   get(path: string, params: URLSearchParams = new URLSearchParams()): Observable<any> {
    return this.http.get(`${environment.api_url}${path}`, { headers: this.setHeaders(), search: params })
     .catch(this.formatErrors)
     .map((res:Response) => res.json());
   }
-  
+
   put(path: string, body: Object = {}): Observable<any> {
     return this.http.put( `${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
         .catch(this.formatErrors)

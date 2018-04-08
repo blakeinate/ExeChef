@@ -10,7 +10,7 @@ import 'rxjs/add/operator/catch';
 
 import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
-import { User } from '../models';
+import { User, Settings } from '../models';
 
 
 @Injectable()
@@ -32,19 +32,13 @@ export class UserService {
 
 
   populate(){
-    //need to set the accsess token as the refresh then when I call refresh
-    //get the accsess token and set it as acsess token and keep the refresh token the same
     let access_token = this.jwtService.getToken();
     let refresh_token = this.jwtService.getRefreshToken();
-    //set the accsess token to the refresh one when calling refresh route so it can pass in the header for the api call.
-    // when we call jwtService.getToken() now we should get the refresh not the accsess
-    this.jwtService.saveToken(refresh_token);
+
     if(access_token){
-      this.apiService.post('/Refresh').subscribe(
+      this.apiService.postRefresh('/Refresh').subscribe(
         data =>{
            access_token = data.access_token;
-           //reset back to origanal form so the user route can set access token as header
-           this.jwtService.saveToken(access_token);
            this.apiService.get('/User')
            .subscribe(
              data => {
@@ -81,7 +75,7 @@ export class UserService {
   }
 
   attemptAuth(type, credentials): Observable<User> {
-    let route = (type === 'login') ? '/Login' : '/CreateAccount';
+    let route = (type === 'login') ? '/Login' : '/User';
     return this.apiService.post(route, credentials)
     .map(
       data => {
@@ -95,8 +89,8 @@ export class UserService {
     return this.currentUserSubject.value;
   }
 
-  update(user:User):Observable<User>{
-    return this.apiService.put('/user',{user})
+  update(settings:Settings):Observable<User>{
+    return this.apiService.put('/User',settings)
     .map(
       data =>{
         this.currentUserSubject.next(data.user);

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { User, UserService } from '../shared';
+import { User,Settings, UserService } from '../shared';
 
 @Component({
   selector: 'settings-page',
@@ -13,6 +13,7 @@ import { User, UserService } from '../shared';
 export class SettingsComponent implements OnInit{
 
   user: User = new User();
+  settings: Settings = new Settings();
   settingsForm: FormGroup;
   errors: Object = {};
   isSubmitting: boolean = false;
@@ -23,11 +24,12 @@ export class SettingsComponent implements OnInit{
     private fb: FormBuilder
   ){
     this.settingsForm = this.fb.group({
-      image: '',
-      username: '',
+      //image: '',
+      //username: '',
       bio: '',
       email: '',
-      password: '',
+      old_password: '',
+      new_password: '',
     });
   }
   ngOnInit(){
@@ -43,9 +45,9 @@ export class SettingsComponent implements OnInit{
   submitForm(){
     this.isSubmitting = true;
 
-    this.updateUser(this.settingsForm.value);
+    this.updateSettings(this.settingsForm.value);
 
-    this.userService.update(this.user).subscribe(
+    this.userService.update(this.settings).subscribe(
       updatedUser => this.router.navigateByUrl('/profile/'+ updatedUser.username),
       err =>{
         this.errors = {
@@ -56,8 +58,13 @@ export class SettingsComponent implements OnInit{
     )
   }
 
-  updateUser(updatedUser:User){
-    (<any>Object).assign(this.user,updatedUser);
+  updateSettings(updatedSettings:Settings){
+
+    if(this.user.email === updatedSettings.email){
+
+      updatedSettings.email = "";
+    }
+    (<any>Object).assign(this.settings,updatedSettings);
   }
 
 

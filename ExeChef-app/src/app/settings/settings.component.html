@@ -10,19 +10,19 @@
         <form [formGroup]="settingsForm" (ngSubmit)="submitForm()">
           <fieldset [disabled]="isSubmitting">
 
-            <fieldset class="form-group">
+            <!-- <fieldset class="form-group">
               <input class="form-control"
                 type="text"
                 placeholder="URL of profile picture"
                 formControlName="image" />
-            </fieldset>
+            </fieldset> -->
 
-            <fieldset class="form-group">
+            <!-- <fieldset class="form-group">
               <input class="form-control form-control-lg"
                 type="text"
                 placeholder="Username"
                 formControlName="username" />
-            </fieldset>
+            </fieldset> -->
 
             <fieldset class="form-group">
               <textarea class="form-control form-control-lg"
@@ -38,12 +38,17 @@
                 placeholder="Email"
                 formControlName="email" />
             </fieldset>
-
+            <fieldset class="form-group">
+              <input class="form-control form-control-lg"
+                type="password"
+                placeholder="Old Password"
+                formControlName="old_password" />
+            </fieldset>
             <fieldset class="form-group">
               <input class="form-control form-control-lg"
                 type="password"
                 placeholder="New Password"
-                formControlName="password" />
+                formControlName="new_password" />
             </fieldset>
 
             <button class="btn btn-lg btn-primary pull-xs-right"
