@@ -188,13 +188,10 @@ class User(Resource):
             else:
                 abort(422, 'The current password does not match the password provided.')
 
-        new_favorite = None
         if favorite:
-            new_favorite = str(favorite)
-
-        new_follow = None
+            to_update['favorites'] = favorite
         if followed:
-            new_follow = str(followed)
+            to_update['followed'] = followed
 
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
@@ -202,12 +199,6 @@ class User(Resource):
         to_change = {}
         if to_update:
             to_change['$set'] = to_update
-        if new_favorite or new_follow:
-            to_change['$push'] = {}
-            if new_favorite:
-                to_change['$push']['favorites'] = new_favorite
-            if new_follow:
-                to_change['$push']['followed'] = new_follow
 
         if to_change:
             result = db.accounts.update_one(

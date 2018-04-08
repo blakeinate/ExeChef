@@ -147,15 +147,17 @@ Requires:
     "Authorization: Bearer <access token here>"
 
   json data in following format :
-  (note: can provide any combination of these as needed)
+  (note: can provide any combination of these as needed, favorite and followed will write over the entire stored list
+    so provide all the values you want to appear)
     {
      "bio": "some bio here",
      "email": "blakeb@gmail.com",
      "old_password":"password here",
      "new_password: "new password here"
-     "favorite": "some recipe id"
-     "followed": "some username"
+     "favorite": ["some recipe id", "some recipe id"]
+     "followed": ["some username", "some username:"]
      }
+
 
 Alternate returns:
   if no access token provided:
