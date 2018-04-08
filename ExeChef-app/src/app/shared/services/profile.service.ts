@@ -22,6 +22,17 @@ export class ProfilesService {
       })
       //.catch(this.formatErrors);
   }
+
+  follow(username: string[]):Observable<Profile>{
+    return this.apiService.put("/User",{"followed":username});
+  }
+
+  // unfollow(username: string):Observable<Profile>{
+  //   return this.apiService.put("/User",{"unfollowed":username});
+  // }
+
+
+
    formatErrors(error: Response) {
      console.log(error);
      return Observable.throw(error.json());

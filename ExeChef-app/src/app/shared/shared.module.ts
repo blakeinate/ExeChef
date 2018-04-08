@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
-
+import {FollowButtonComponent} from "./buttons";
 import {ListErrorsComponent} from './errorList';
 import {ShowAuthedDirective} from './show-authed.directive';
 
@@ -16,6 +16,7 @@ import {ShowAuthedDirective} from './show-authed.directive';
     RouterModule
   ],
   declarations: [
+    FollowButtonComponent,
     ListErrorsComponent,
     ShowAuthedDirective
   ],
@@ -24,6 +25,7 @@ import {ShowAuthedDirective} from './show-authed.directive';
     FormsModule,
     ReactiveFormsModule,
     HttpModule,
+    FollowButtonComponent,
     ListErrorsComponent,
     RouterModule,
     ShowAuthedDirective
