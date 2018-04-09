@@ -42,7 +42,7 @@ blacklist database structure (front end should never need to touch this)
 ENDPOINTS
 ---------------------------------------------------------------
 create account
-A POST request to the /CreateAccount should be made.
+A POST request to the /User should be made.
 Returns:
 {
   "data": {
@@ -154,7 +154,7 @@ Requires:
      "email": "blakeb@gmail.com",
      "old_password":"password here",
      "new_password: "new password here"
-     "favorite": ["some recipe id", "some recipe id"]
+     "favorites": ["some recipe id", "some recipe id"]
      "followed": ["some username", "some username:"]
      }
 

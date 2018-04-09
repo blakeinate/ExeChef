@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required, create_refresh_token,
     get_jwt_identity, get_raw_jwt, jwt_optional
 )
-from pymongo import MongoClient
+from flask_pymongo import MongoClient
 from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
 from validate_email import validate_email
@@ -30,6 +30,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 api = Api(app)
 jwt = JWTManager(app)
 client = MongoClient()
+db = client['exechef']
 
 @app.after_request
 def after_request(response):
@@ -41,7 +42,6 @@ def after_request(response):
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     try:
-        db = client.exechef
         jti = decrypted_token['jti']
         cursor = db.blacklist.find_one({'token': str(jti)})
         if cursor:
@@ -54,7 +54,6 @@ def check_if_token_in_blacklist(decrypted_token):
 #upon logout store keys in blacklist
 def add_to_blacklist(jti):
     try:
-        db = client.exechef
         result = db.blacklist.insert_one(
         {
             'token': str(jti)
@@ -94,7 +93,6 @@ def upload_image(file):
 
 class Users(Resource):
     def get(self):
-        db = client.exechef
         cursor = db.accounts.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
@@ -107,7 +105,6 @@ class User(Resource):
     @jwt_optional
     def get(self, username=None):
         _account_name = get_jwt_identity()
-        db = client.exechef
         current_user = None
         if _account_name:
             current_user = db.accounts.find_one({'username': _account_name})
@@ -138,7 +135,6 @@ class User(Resource):
     @jwt_required
     def put(self):
         acceptable_entries = ['bio']#, 'old_password', 'new_password', 'favorites']
-        db = client.exechef
         json_data = request.get_json(force=True)
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
@@ -220,7 +216,6 @@ class User(Resource):
 
 
     def post(self):
-        db = client.exechef
         json_data = request.get_json(force=True)
 
         _account_name = json_data.get('username')
@@ -266,7 +261,6 @@ class User(Resource):
 class Update_Password(Resource):
     @jwt_required
     def put(self):
-        db = client.exechef
         json_data = request.get_json(force=True)
 
         _account_name = get_jwt_identity()
@@ -300,7 +294,6 @@ class Update_Password(Resource):
 #checks if a username and password match
 class Login(Resource):
     def post(self):
-        db = client.exechef
         json_data = request.get_json(force=True)
         _account_login = json_data.get('login')
         _account_password = json_data.get('password')
@@ -378,7 +371,6 @@ class Logout2(Resource):
 class Favorites(Resource):
     @jwt_required
     def get(self):
-        db = client.exechef
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
@@ -402,7 +394,6 @@ class Favorites(Resource):
 class User_Recipes(Resource):
     @jwt_required
     def get(self):
-        db = client.exechef
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
@@ -426,7 +417,6 @@ class Followed_Feed(Resource):
     @jwt_optional
     def get(self, num_to_get = 10):
         num_to_get = int(num_to_get)
-        db = client.exechef
         _account_name = get_jwt_identity()
         if _account_name:
             followed = db.accounts.find_one({'username': str(_account_name)}).get('followed')
@@ -445,7 +435,6 @@ class Followed_Feed(Resource):
 #returns list of all recipes
 class Recipes(Resource):
     def get(self):
-        db = client.exechef
         cursor = db.recipes.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
@@ -458,7 +447,6 @@ class Recipes(Resource):
 class Recipe(Resource):
     @jwt_required
     def post(self):
-        db = client.exechef
         #check if image provided
         image = None;
         if 'file' in request.files:
@@ -511,7 +499,6 @@ class Recipe(Resource):
 
     @jwt_optional
     def get(self, recipe_id):
-        db = client.exechef
         cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
         if cursor == None:
             abort(400, message='No recipe found with the provided recipe ID.')
@@ -566,7 +553,6 @@ class Recipe(Resource):
 
     @jwt_required
     def delete(self, recipe_id):
-        db = client.exechef
 
         # change recipe_id to BSON id format
         recipe_id = ObjectId(recipe_id)
@@ -594,7 +580,6 @@ class Recipe(Resource):
 #MAKE SURE THIS WORKS
 class Search_Tags(Resource):
     def get(self, tag_str):
-        db = client.exechef
         #split string and remove non alphanumeric
         tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split(',')]
         cursor = db.recipes.find({'$or': tag_list, 'private': 'False'})
