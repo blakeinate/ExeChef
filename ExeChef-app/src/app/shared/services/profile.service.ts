@@ -23,8 +23,8 @@ export class ProfilesService {
       //.catch(this.formatErrors);
   }
 
-  follow(username: string[]):Observable<Profile>{
-    return this.apiService.put("/User",{"followed":username});
+  follow(followList: string[]):Observable<Profile>{
+    return this.apiService.put("/User",{"followed":followList});
   }
 
   // unfollow(username: string):Observable<Profile>{

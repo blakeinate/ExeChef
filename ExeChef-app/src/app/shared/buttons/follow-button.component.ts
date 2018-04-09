@@ -36,6 +36,7 @@ export class FollowButtonComponent {
           this.userService.currentUser.subscribe(
             (userData: User) => {
               this.followingList = userData.followed;
+              //  console.log("follow",this.followingList);
                 // Follow this profile if we aren't already
               if(!this.followingList.includes(this.profile.username)){
                 this.followingList.push(this.profile.username);
@@ -50,6 +51,7 @@ export class FollowButtonComponent {
               }else{
                   // Otherwise, unfollow this profile
                 this.followingList = userData.followed.filter(username => this.profile.username !== username);
+                //console.log("unfollow",this.followingList);
                 this.profilesService.follow(this.followingList)
                 .subscribe(
                   data => {
