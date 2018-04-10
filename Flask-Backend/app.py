@@ -189,15 +189,28 @@ class User(Resource):
             to_update['favorites'] = favorites
 
         if followed:
-            #remove user from the following lists of users no longer followed
+
+            #remove user from the followers lists of users no longer followed
             user_info = db.accounts.find_one({'username': _account_name})
             removed_users = []
             for followed_user in user_info.get('followed'):
                 if followed_user not in followed:
                     removed_users.append({'username': followed_user})
-            result = db.accounts.update({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
-            if result.modified_count == 0:
-                abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
+            if removed_users:
+                result = db.accounts.update({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
+                if result.modified_count == 0:
+                    abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
+
+            #add user to the followers list of users now followed
+            added_users = []
+            for followed_user in followed:
+                if followed_user not in user_info.get('followed'):
+                    added_users.append({'username': followed_user})
+            if added_users:
+                result = db.accounts.update({'$or': removed_users}, {'$push': {'followers': str(_account_name)}})
+                if result.modified_count == 0:
+                    abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
+
             to_update['followed'] = followed
 
         if followers:
@@ -494,8 +507,8 @@ class Recipe(Resource):
             'name' : name,
             'image_name': secure_filename,
             'tags' : tags,
-            'steps' : steps,
-            'author' : _account_name,
+            'steps': steps,
+            'author': _account_name,
             'description' : description,
             'private' : private,
             'ingredients' : ingredients,
