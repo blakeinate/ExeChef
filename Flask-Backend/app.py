@@ -139,8 +139,9 @@ class User(Resource):
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
         _account_email = json_data.get('email')
-        favorite = json_data.get('favorite')
+        favorites = json_data.get('favorites')
         followed = json_data.get('followed')
+        followers = json_data.get('followers')
         _account_name = get_jwt_identity()
 
         if not _account_name:
@@ -184,10 +185,23 @@ class User(Resource):
             else:
                 abort(422, 'The current password does not match the password provided.')
 
-        if favorite:
-            to_update['favorites'] = favorite
+        if favorites:
+            to_update['favorites'] = favorites
+
         if followed:
+            #remove user from the following lists of users no longer followed
+            user_info = db.accounts.find_one({'username': _account_name})
+            removed_users = []
+            for followed_user in user_info.get('followed'):
+                if followed_user not in followed:
+                    removed_users.append({'username': followed_user})
+            result = db.accounts.update({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
+            if result.modified_count == 0:
+                abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
             to_update['followed'] = followed
+
+        if followers:
+            to_update['followers'] = followers
 
         #return list of recipes from user {'userFavorites': []}
         cursor = db.accounts.find_one({'username': str(_account_name)})
@@ -246,6 +260,7 @@ class User(Resource):
             'password': _account_password,
             'email': _account_email,
             'favorites': [],
+            'followers': [],
             'created': [],
             'bio': '',
         })
@@ -504,8 +519,10 @@ class Recipe(Resource):
             abort(400, message='No recipe found with the provided recipe ID.')
         if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
             abort(403, message='Private recipe is owned by another user.')
+        author = db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
+        true_json_data['user'] = author
         resp = jsonify({'recipe': true_json_data})
         resp.status_code = 200
         return resp
