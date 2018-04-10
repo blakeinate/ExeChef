@@ -533,9 +533,9 @@ class Recipe(Resource):
         if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
             abort(403, message='Private recipe is owned by another user.')
         author = db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
+        author['user'] = author
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
-        true_json_data['user'] = author
         resp = jsonify({'recipe': true_json_data})
         resp.status_code = 200
         return resp
