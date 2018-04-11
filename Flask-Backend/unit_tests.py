@@ -241,7 +241,7 @@ class TestDataAccess(unittest.TestCase):
                       json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
         login_response = requests.post('http://localhost:5000/Login',
                                        json={'login': 'testuser', 'password': 'somepassword'})
-        access_token = login_response.json().get('access_token')
+        access_token = login_response.json().get('user').get('access_token')
         tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         recipe = {'name': 'testrecipe',
                   'private': 'True',
@@ -255,6 +255,76 @@ class TestDataAccess(unittest.TestCase):
         response = requests.get('http://localhost:5000/SearchTags/'+tag)
         check_empty = response.json().get('recipes')
         self.assertEqual(0, len(check_empty))
+
+class TestDataUpdating(unittest.TestCase):
+    def test_user_update_bio_email_valid_info(self):
+        email_name = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '@gmail.com')
+        bio = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'bio': bio,
+             'email': email_name,
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        good_update = False
+        user = response.json().get('user')
+        if (user.get('bio') == bio) and (user.get('email') == email_name):
+            good_update = True
+        self.assertEqual(True, good_update)
+
+    def test_user_update_followers_follow_unfollow_valid_info(self):
+        user_to_follow = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+        user_to_update = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+        #create user to follow
+        requests.post('http://localhost:5000/User',
+                      json={'username': user_to_follow, 'password': 'somepassword', 'email': user_to_follow+'@gmail.com'})
+        #create user to update
+        requests.post('http://localhost:5000/User',
+                      json={'username': user_to_update, 'password': 'somepassword', 'email': user_to_update+'@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': user_to_update, 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'following': [user_to_follow]
+         }
+        #update followed list of user
+        update_response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        followed_user = requests.get('http://localhost:5000/User/'+user_to_follow,  headers=header)
+        user = update_response.json().get('user')
+        followed_user = followed_user.json().get('user')
+        #check that updates were successful for both updated user's following list
+        #as well as followed_user's followers list
+        good_update = False
+        if (user_to_follow in user.get('following')) and (user_to_update in followed_user.get('followers')):
+            good_update = True
+        self.assertEqual(True, good_update)
+
+        #now test unfollow and followers removal
+        to_update = {
+             'following': []
+         }
+        update_response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        followed_user = requests.get('http://localhost:5000/User/'+user_to_follow,  headers=header)
+        user = update_response.json().get('user')
+        followed_user = followed_user.json().get('user')
+        # check that updates were successful for both updated user's following list
+        # as well as followed_user's followers list
+        good_update = False
+        if (user_to_follow not in user.get('following')) and (user_to_update not in followed_user.get('followers')):
+            good_update = True
+        self.assertEqual(True, good_update)
+
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

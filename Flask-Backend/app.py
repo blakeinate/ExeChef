@@ -115,11 +115,11 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if provided_user.get('username') in current_user.get('followed'):
-                    followed = True
+                if provided_user.get('username') in current_user.get('following'):
+                    following = True
                 else:
-                    followed = False
-                true_json_data['followed'] = followed
+                    following = False
+                true_json_data['following'] = following
             resp = jsonify({'user': true_json_data})
             resp.status_code = 200
         else:
@@ -140,7 +140,7 @@ class User(Resource):
         _new_password = json_data.get('new_password')
         _account_email = json_data.get('email')
         favorites = json_data.get('favorites')
-        followed = json_data.get('followed')
+        following = json_data.get('following')
         followers = json_data.get('followers')
         _account_name = get_jwt_identity()
 
@@ -148,7 +148,7 @@ class User(Resource):
             abort(422, message='The provided username is invalid.')
 
         to_update = {}
-
+        #if new email provided make sure its valid
         if _account_email:
             if validate_email(str(_account_email)):
                 cursor2 = db.accounts.find_one({'email': str(_account_email)})
@@ -185,35 +185,35 @@ class User(Resource):
             else:
                 abort(422, 'The current password does not match the password provided.')
 
-        if favorites:
+        if isinstance(favorites, (list,)):
             to_update['favorites'] = favorites
 
-        if followed:
+        if isinstance(following, (list,)):
 
-            #remove user from the followers lists of users no longer followed
+            #remove user from the followers lists of users no longer following
             user_info = db.accounts.find_one({'username': _account_name})
             removed_users = []
-            for followed_user in user_info.get('followed'):
-                if followed_user not in followed:
-                    removed_users.append({'username': followed_user})
+            for following_user in user_info.get('following'):
+                if following_user not in following:
+                    removed_users.append({'username': following_user})
             if removed_users:
-                result = db.accounts.update({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
+                result = db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
                 if result.modified_count == 0:
                     abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
 
-            #add user to the followers list of users now followed
+            #add user to the followers list of users now following
             added_users = []
-            for followed_user in followed:
-                if followed_user not in user_info.get('followed'):
-                    added_users.append({'username': followed_user})
+            for following_user in following:
+                if following_user not in user_info.get('following'):
+                    added_users.append({'username': following_user})
             if added_users:
-                result = db.accounts.update({'$or': removed_users}, {'$push': {'followers': str(_account_name)}})
+                result = db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
                 if result.modified_count == 0:
                     abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
 
-            to_update['followed'] = followed
+            to_update['following'] = following
 
-        if followers:
+        if isinstance(followers, (list,)):
             to_update['followers'] = followers
 
         #return list of recipes from user {'userFavorites': []}
@@ -228,7 +228,6 @@ class User(Resource):
                 {'username': str(_account_name)},
                 to_change
             )
-
             if result.modified_count == 1:
                 cursor = db.accounts.find_one({'username': str(_account_name)})
                 bson_to_json = dumps(cursor)
@@ -274,6 +273,7 @@ class User(Resource):
             'email': _account_email,
             'favorites': [],
             'followers': [],
+            'following': [],
             'created': [],
             'bio': '',
         })
@@ -440,18 +440,18 @@ class User_Recipes(Resource):
         resp.status_code = 200
         return resp
 
-#get feed composed of followed accounts recent recipes
-class Followed_Feed(Resource):
+#get feed composed of following accounts recent recipes
+class Following_Feed(Resource):
     @jwt_optional
     def get(self, num_to_get = 10):
         num_to_get = int(num_to_get)
         _account_name = get_jwt_identity()
         if _account_name:
-            followed = db.accounts.find_one({'username': str(_account_name)}).get('followed')
-            followed_list = []
-            for item in followed:
-                followed_list.append({'author': item})
-            recent_recipes = db.recipes.find({'$or': followed_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+            following = db.accounts.find_one({'username': str(_account_name)}).get('following')
+            following_list = []
+            for item in following:
+                following_list.append({'author': item})
+            recent_recipes = db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
         else:
             recent_recipes = db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
         bson_to_json = dumps(recent_recipes)
@@ -628,7 +628,7 @@ class Pagination(object):
 
 
 api.add_resource(Login, '/Login')
-api.add_resource(Followed_Feed, '/Feed/<num_to_get>', '/Feed')
+api.add_resource(Following_Feed, '/Feed/<num_to_get>', '/Feed')
 api.add_resource(Logout, '/Logout')
 api.add_resource(Logout2, '/Logout2')
 api.add_resource(Refresh, '/Refresh')
