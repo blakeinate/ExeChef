@@ -13,9 +13,21 @@ export class FollowButtonComponent {
     private profilesService: ProfilesService,
     private router: Router,
     private userService: UserService
-  ) {}
+  ) {
 
-  @Input() profile: Profile;
+  }
+
+  profile:Profile;
+  @Input() set profileInput(profile: Profile){
+    this.profile = profile;
+    this.userService.isAuthenticated.subscribe(
+      (authenticated) =>{
+        if(!authenticated){
+          profile.following = false;
+        }
+      }
+    )
+  }
   @Output() onToggle = new EventEmitter<boolean>();
   isSubmitting = false;
   followingList:string[];
@@ -35,7 +47,7 @@ export class FollowButtonComponent {
 
           this.userService.currentUser.subscribe(
             (userData: User) => {
-              this.followingList = userData.followed;
+              this.followingList = userData.following;
               //  console.log("follow",this.followingList);
                 // Follow this profile if we aren't already
               if(!this.followingList.includes(this.profile.username)){
@@ -50,7 +62,7 @@ export class FollowButtonComponent {
                 );
               }else{
                   // Otherwise, unfollow this profile
-                this.followingList = userData.followed.filter(username => this.profile.username !== username);
+                this.followingList = userData.following.filter(username => this.profile.username !== username);
                 //console.log("unfollow",this.followingList);
                 this.profilesService.follow(this.followingList)
                 .subscribe(

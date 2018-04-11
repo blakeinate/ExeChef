@@ -4,6 +4,7 @@ export class User{
   email: string;
   favorites: string[];
   created: string[];
+  following: string[];
   followed: string[];
   access_token: string;
   refresh_token: string;

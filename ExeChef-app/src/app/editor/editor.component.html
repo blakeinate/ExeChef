@@ -1,0 +1,113 @@
+<div class="editor-page">
+  <div class="container page">
+    <div class="row">
+      <div class="col-md-10 offset-md-1 col-xs-12">
+
+        <list-errors [errors]="errors"></list-errors>
+
+        <form [formGroup]="recipeForm">
+          <fieldset [disabled]="isSubmitting">
+
+            <fieldset class="form-group">
+              <input class="form-control form-control-lg"
+                formControlName="title"
+                type="text"
+                placeholder="Recipe Name" />
+            </fieldset>
+
+            <fieldset class="form-group">
+              <input class="form-control"
+                formControlName="description"
+                type="text"
+                placeholder="How about a little description of the recipe?" />
+            </fieldset>
+
+            <fieldset class="form-group">
+              <input class="form-control"
+                type="text"
+                placeholder="Enter Steps"
+                [formControl]="stepField"
+                (keyup.enter)="addStep()" />
+
+              <div class="step-list">
+                <span *ngFor="let step of recipe.steps; let i = index"
+                  class="steps">
+                  <i class="ion-close-round" (click)="removeStep(i)">X</i><!--remove x later in favor of css-->
+                 <input #stepInput type="text" (keyup.enter)="changeStep(i,stepInput.value)" [value]="step"/>
+                </span>
+              </div>
+            </fieldset>
+
+            <div formArrayName = "ingredients">
+                <div *ngFor = "let ingredient of recipeForm.controls.ingredients.controls; let i = index">
+                  <div class="panel-heading">
+                   <span>ingredient {{i + 1}}</span>
+                   <span class="glyphicon glyphicon-remove pull-right" *ngIf="recipeForm.controls.ingredients.controls.length > 1" (click)="removeIngredients (i)"></span>
+                 </div>
+                 <div [formGroupName]="i">
+                   <fieldset class="form-group">
+                     <input class="form-control form-control-lg"
+                       formControlName="name"
+                       type="text"
+                       placeholder="Whats the name of the ingredient" />
+                   </fieldset>
+                   <fieldset class="form-group">
+                     <input class="form-control form-control-lg"
+                       formControlName="amount"
+                       type="text"
+                       placeholder="How many?" />
+                   </fieldset>
+                   <fieldset class="form-group">
+                     <select formControlName="unit" name="" id="">
+                       <option value="" disabled>Choose a unit</option>
+                       <option *ngFor="let unit of units" [value]="unit">
+                         {{unit}}
+                       </option>
+                     </select>
+                     <!-- <input class="form-control form-control-lg"
+                       formControlName="unit"
+                       type="text"
+                       placeholder="What unit?" /> -->
+                   </fieldset>
+                 </div>
+                </div>
+            </div>
+            <div class="margin-20">
+               <a (click)="addIngredients()" style="cursor: default">
+                 Add another ingredient +
+               </a>
+           </div>
+
+
+            <fieldset class="form-group">
+              <input class="form-control"
+                type="text"
+                placeholder="Enter tags"
+                [formControl]="tagField"
+                (keyup.enter)="addTag()" />
+
+              <div class="tag-list">
+                <span *ngFor="let tag of recipe.tags; let i = index"
+                  class="tag-default tag-pill">
+                  <i class="ion-close-round" (click)="removeTag(tag)"></i>
+                  {{ tag }}
+                </span>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <label>Private</label>
+              <input type="checkbox" formControlName="private"/>
+            </fieldset>
+
+            <button class="btn btn-lg pull-xs-right btn-primary" type="button" (click)="submitForm()">
+              Publish Recipe
+            </button>
+
+          </fieldset>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>

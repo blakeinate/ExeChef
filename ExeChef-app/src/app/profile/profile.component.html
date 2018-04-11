@@ -10,7 +10,7 @@
           <p>{{ profile.bio }}</p>
           <follow-button
             [hidden]="isUser"
-            [profile]="profile"
+            [profileInput]="profile"
             (onToggle)="onToggleFollowing($event)">
           </follow-button>
            <a [routerLink]="['/settings']"

@@ -44,7 +44,7 @@ export class ProfileComponent implements OnInit {
   onToggleFollowing(following: boolean) {
     //probbably dont need
     console.log("its hitting");
-    this.profile.followed = following;
+    this.profile.following = following;
     console.log(this.profile);
   }
 

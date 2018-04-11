@@ -2,7 +2,7 @@ export class Profile{
   username: string;
   bio: string;
   image: string;
-  followed: boolean;
+  following: boolean;
   favorites: string[];
   created: string[];
 }
