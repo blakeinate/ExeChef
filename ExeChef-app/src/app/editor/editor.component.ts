@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl,FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { Recipe, RecipesService } from '../shared';
+import { Recipe, RecipesService, Unit } from '../shared';
 
 @Component({
   selector: 'editor-page',
@@ -21,29 +21,137 @@ export class EditorComponent implements OnInit {
   ingredients: FormGroup;
   tagField = new FormControl();
   stepField = new FormControl();
-  units: Array<string> = [
-    "teaspoon",
-    "tablespoon",
-    "fluid ounce",
-    "gill",
-    "cup",
-    "pint",
-    "quart",
-    "gallon",
-    "ml",
-    "l",
-    "dl",
-    "pound",
-    "ounce",
-    "mg",
-    "g",
-    "kg",
-    "mm",
-    "cm",
-    "m",
-    "inch",
-    "bag",
-    "jar",
+  unitStep:number = 100;
+  unitMax: number = 100;
+  unitValue:number = 50;
+  unitLabel: string;
+  units: Array<Unit> = [
+    {
+      name:"teaspoon",
+      abrev: "tsp",
+      max: 20,
+      step: .25
+    },
+    {
+      name:"fluid ounce",
+      abrev: "oz",
+      max: 500,
+      step: 1
+    },
+    {
+      name:"gill",
+      abrev:"gill",
+      max: 500,
+      step: 1
+    },
+    {
+      name:"cup",
+      abrev:"cup",
+      max: 100,
+      step: .25
+    },
+    {
+      name:"pint",
+      abrev:"pt",
+      max: 100,
+      step: .25
+    },
+    {
+      name:"quart",
+      abrev:"qt",
+      max: 100,
+      step: .25
+    },
+    {
+      name:"gallon",
+      abrev:"gal",
+      max: 100,
+      step: .5
+    },
+    {
+      name:"milliliter",
+      abrev:"ml",
+      max: 200,
+      step: .5
+    },
+    {
+      name:"liter",
+      abrev:"l",
+      max: 200,
+      step: .5
+    },
+    {
+      name:"deciliter",
+      abrev:"dL",
+      max: 200,
+      step: .5
+    },
+    {
+      name:"pound",
+      abrev:"lb",
+      max: 200,
+      step: 1
+    },
+    {
+      name:"ounce",
+      abrev:"oz",
+      max: 200,
+      step: .5
+    },
+    {
+      name:"milligram",
+      abrev:"mg",
+      max: 200,
+      step: .25
+    },
+    {
+      name:"gram",
+      abrev:"g",
+      max: 500,
+      step: .25
+    },
+    {
+      name:"kilogram",
+      abrev:"kg",
+      max: 500,
+      step: .25
+    },
+    {
+      name:"millimeter",
+      abrev:"mm",
+      max: 1000,
+      step: .25
+    },
+    {
+      name:"centimeter",
+      abrev:"cm",
+      max: 1000,
+      step: .25
+    },
+    {
+      name:"meter",
+      abrev:"m",
+      max: 1000,
+      step: 1
+    },
+    {
+      name:"inch",
+      abrev:"in",
+      max: 20,
+      step: .25
+    },
+    {
+      name:"bag",
+      abrev:"bag",
+      max: 100,
+      step: .25
+    },
+    {
+      name:"jar",
+      abrev:"jar",
+      max: 100,
+      step: .25
+    },
   ];
   errors: Object = {};
   isSubmitting: boolean = false;
@@ -134,6 +242,25 @@ export class EditorComponent implements OnInit {
 
   updateRecipe(values: Object) {
     (<any>Object).assign(this.recipe, values);
+  }
+
+  setSlider(input:any){
+    let name = input.srcElement.value;
+    let index = this.units.findIndex(unit => unit.name === name);
+    if(index > -1){
+      let unit = this.units[index];
+      this.unitStep = unit.step;
+      this.unitMax = unit.max;
+      this.unitValue = unit.max/2;
+      this.unitLabel = unit.abrev;
+    }else{
+        this.unitLabel = name;
+    }
+
+  }
+  changeLabel(input:any){
+      this.unitValue = input.srcElement.value;
+
   }
 
   submitForm() {

@@ -53,22 +53,33 @@
                    </fieldset>
                    <fieldset class="form-group">
                      <input class="form-control form-control-lg"
-                       formControlName="amount"
-                       type="text"
-                       placeholder="How many?" />
-                   </fieldset>
-                   <fieldset class="form-group">
-                     <select formControlName="unit" name="" id="">
-                       <option value="" disabled>Choose a unit</option>
-                       <option *ngFor="let unit of units" [value]="unit">
-                         {{unit}}
-                       </option>
-                     </select>
-                     <!-- <input class="form-control form-control-lg"
                        formControlName="unit"
                        type="text"
-                       placeholder="What unit?" /> -->
+                       list="units"
+
+                       placeholder="What's the unit?"
+                       (change)="setSlider($event)"/>
+                     <datalist id="units">
+                       <option *ngFor="let unit of units; let i = index;" [value]="unit.name">
+                         {{unit.name}}
+                       </option>
+                     </datalist>
                    </fieldset>
+                   <fieldset class="form-group">
+                     <div class="slider">
+                       <input
+                       formControlName="amount"
+                       type="range"
+                       class="slider__range"
+                       (input)="changeLabel($event)"
+                       [value]="unitValue"
+                       min ="0"
+                       [step]="unitStep"
+                       [max]="unitMax">
+                       <span class="slider__value">{{unitValue}}{{unitLabel}}</span>
+                     </div>
+                   </fieldset>
+
                  </div>
                 </div>
             </div>
