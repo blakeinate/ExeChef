@@ -471,7 +471,6 @@ class Recipes(Resource):
         return resp
 
 
-#returns a single recipe
 class Recipe(Resource):
     @jwt_required
     def post(self):
