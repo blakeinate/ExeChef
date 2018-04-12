@@ -134,7 +134,7 @@ class User(Resource):
 
     @jwt_required
     def put(self):
-        acceptable_entries = ['bio']#, 'old_password', 'new_password', 'favorites']
+        acceptable_entries = ['bio']
         json_data = request.get_json(force=True)
         _old_password = json_data.get('old_password')
         _new_password = json_data.get('new_password')
@@ -183,7 +183,7 @@ class User(Resource):
             if cursor['password'] == _old_password:
                 to_update['password'] = _new_password
             else:
-                abort(422, 'The current password does not match the password provided.')
+                abort(422, message='The current password does not match the password provided.')
 
         if isinstance(favorites, (list,)):
             to_update['favorites'] = favorites
@@ -198,7 +198,7 @@ class User(Resource):
                     removed_users.append({'username': following_user})
             if removed_users:
                 result = db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
-                if result.modified_count == 0:
+                if not result.acknowledged:
                     abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
 
             #add user to the followers list of users now following
@@ -208,7 +208,7 @@ class User(Resource):
                     added_users.append({'username': following_user})
             if added_users:
                 result = db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
-                if result.modified_count == 0:
+                if not result.acknowledged:
                     abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
 
             to_update['following'] = following
@@ -228,7 +228,7 @@ class User(Resource):
                 {'username': str(_account_name)},
                 to_change
             )
-            if result.modified_count == 1:
+            if result.acknowledged:
                 cursor = db.accounts.find_one({'username': str(_account_name)})
                 bson_to_json = dumps(cursor)
                 true_json_data = json.loads(bson_to_json)
@@ -311,7 +311,7 @@ class Update_Password(Resource):
                     }
                 }
             )
-            if result.modified_count == 1:
+            if result.acknowledged:
                 return Response(status=200)
             else:
                 abort(500, message='Password could not be updated. Database could not modify the specified account.')
@@ -554,7 +554,10 @@ class Recipe(Resource):
 
         json_data = request.get_json(force=True)
 
-        recipe_id = json_data['id']
+        recipe_id = json_data.get('id')
+        if not recipe_id:
+            abort(422, message='No recipe ID provided.')
+
 
         # verifies user attempting to modify recipe owns the recipe
         _account_name = get_jwt_identity()
@@ -567,6 +570,10 @@ class Recipe(Resource):
         for key, value in json_data.iteritems():
             if key in acceptable_entries:
                 to_update[key] = value
+
+        if not to_update:
+            abort(422, message='No data provided to update')
+
         to_update['modified_date'] = datetime.now()
 
         result = db.recipes.update_one(
@@ -575,7 +582,7 @@ class Recipe(Resource):
                 '$set': to_update
             }
         )
-        if result.modified_count == 1:
+        if result.acknowledged:
             return Response(status=200)
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
@@ -589,11 +596,20 @@ class Recipe(Resource):
         # verifies user attempting to delete recipe owns the recipe
         _account_name = get_jwt_identity()
         users_account = db.accounts.find_one({'username': _account_name})
-        if recipe_id not in users_account['created']:
+        if str(recipe_id) not in users_account['created']:
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
 
+        favorited_by = db.accounts.find({'favorites': [str(recipe_id)]})
+
+        users_to_remove = []
+        for user in favorited_by:
+            users_to_remove.append(user.get('username'))
+
         result = db.recipes.delete_one({'_id': recipe_id})
-        if result.deleted_count == 1:
+
+        if result.acknowledged:
+            if users_to_remove:
+                db.accounts.update_many({'$or': users_to_remove}, {'$pull': {'favorites': str(recipe_id)}})
             return Response(status=200)
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')

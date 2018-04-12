@@ -321,8 +321,259 @@ class TestDataUpdating(unittest.TestCase):
             good_update = True
         self.assertEqual(True, good_update)
 
+    def test_user_update_favorites_valid_info(self):
+        email_name = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '@gmail.com')
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'favorites': []
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        self.assertEqual(200, response.status_code)
+
+    def test_user_update_password_valid_info(self):
+        username = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+        requests.post('http://localhost:5000/User',
+                      json={'username': username, 'password': 'somepassword', 'email': username+'@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': username, 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'old_password': 'somepassword',
+             'new_password': 'somenewpassword'
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        self.assertEqual(200, response.status_code)
 
 
+
+    def test_user_update_password_invalid_info(self):
+        #first test old password incorrect
+        username = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+        requests.post('http://localhost:5000/User',
+                      json={'username': username, 'password': 'somepassword', 'email': username+'@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': username, 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'old_password': 'somepassword2',
+             'new_password': 'somenewpassword'
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        self.assertEqual(422, response.status_code)
+        #now test is only one of the password fields provided
+        to_update = {
+             'old_password': 'somepassword',
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        self.assertEqual(422, response.status_code)
+        to_update = {
+             'new_password': 'somenewpassword'
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+        self.assertEqual(422, response.status_code)
+
+    def test_user_update_bio_email_invalid_info(self):
+        #create invalid email name (i.e. with no @email.something
+        email_name = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+        bio = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_update = {
+             'bio': bio,
+             'email': email_name,
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update, headers=header)
+
+        self.assertEqual(422, response.status_code)
+
+    def test_user_update_anything_no_access_token(self):
+        #create invalid email name (i.e. with no @email.something
+        bio = str(''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        to_update = {
+             'bio': bio,
+         }
+        response = requests.put('http://localhost:5000/User', json=to_update)
+
+        self.assertEqual(401, response.status_code)
+
+    def test_recipe_update_valid(self):
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_create = {
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood'],
+            'steps': [
+              'heat oven',
+              'put food in',
+              'eat the food'
+            ],
+            'private':'True',
+            'ingredients': [
+                {
+                    'amount': 'tree-fitty',
+                    'name': 'dank',
+                    'unit': 'pounds'
+                }
+            ]
+        }
+        response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
+        recipe_id = response.json().get('id')
+        to_update = {
+            'id': str(recipe_id),
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood', 'meepmoooperr'],
+            'steps': [
+              'heat oven',
+              'eat the food'
+            ],
+            'private':'True',
+            'ingredients': [
+                {
+                    'amount': 'tree-forty',
+                    'name': 'daneek',
+                    'unit': 'pounds'
+                }
+            ]
+        }
+        response = requests.put('http://localhost:5000/Recipe', json=to_update, headers=header)
+        self.assertEqual(200, response.status_code)
+
+    def test_recipe_update_invalid(self):
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_create = {
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood'],
+            'steps': [
+              'heat oven',
+              'put food in',
+              'eat the food'
+            ],
+            'private':'True',
+            'ingredients': [
+                {
+                    'amount': 'tree-fitty',
+                    'name': 'dank',
+                    'unit': 'pounds'
+                }
+            ]
+        }
+        response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
+        recipe_id = response.json().get('id')
+        to_update = {
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood', 'meepmoooperr'],
+        }
+        response = requests.put('http://localhost:5000/Recipe', json=to_update, headers=header)
+        self.assertEqual(422, response.status_code)
+
+class TestDataDeletion(unittest.TestCase):
+    #test recipe deletion, does not check if recipe ID removed from other users favorites
+    def test_recipe_deletion_general(self):
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        to_create = {
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood'],
+            'steps': [
+              'heat oven',
+              'put food in',
+              'eat the food'
+            ],
+            'private':'True',
+            'ingredients': [
+                {
+                    'amount': 'tree-fitty',
+                    'name': 'dank',
+                    'unit': 'pounds'
+                }
+            ]
+        }
+        response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
+        recipe_id = response.json().get('id')
+        response = requests.delete('http://localhost:5000/Recipe/'+str(recipe_id), headers=header)
+        self.assertEqual(200, response.status_code)
+
+    def test_recipe_deletion_check_other_user_favorites(self):
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser2', 'password': 'somepassword', 'email': 'testuser2@gmail.com'})
+        login_response2 = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser2', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        access_token2 = login_response2.json().get('user').get('access_token')
+
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        header2 = {'Authorization': 'Bearer ' + str(access_token2)}
+
+        to_create = {
+            'name': 'somenamehere',
+            'tags': ['dankness', 'goodfood'],
+            'steps': [
+              'heat oven',
+              'put food in',
+              'eat the food'
+            ],
+            'private':'True',
+            'ingredients': [
+                {
+                    'amount': 'tree-fitty',
+                    'name': 'dank',
+                    'unit': 'pounds'
+                }
+            ]
+        }
+        response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
+        recipe_id = response.json().get('id')
+        to_update = {
+            'favorites': [str(recipe_id)]
+        }
+        requests.put('http://localhost:5000/User', json=to_update, headers=header2)
+
+        response = requests.delete('http://localhost:5000/Recipe/'+str(recipe_id), headers=header)
+
+        favorited_user_response = requests.get('http://localhost:5000/User', headers=header2)
+
+        found = True
+        if favorited_user_response.json().get('favorites'):
+            if str(recipe_id) not in favorited_user_response.json().get('favorites'):
+                found = False
+        else:
+            found = False
+
+        self.assertEqual(False, found)
 
 
 
