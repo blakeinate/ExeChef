@@ -115,14 +115,14 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if isinstance(current_user.get('following'), (list,)):
+                if isinstance(current_user.get('am_i_following'), (list,)):
                     if provided_user.get('username') in current_user.get('following'):
-                        following = True
+                        am_i_following = True
                     else:
-                        following = False
+                        am_i_following = False
                 else:
-                    following = False
-                true_json_data['following'] = following
+                    am_i_following = False
+                true_json_data['am_i_following'] = am_i_following
             resp = jsonify({'user': true_json_data})
             resp.status_code = 200
         else:
