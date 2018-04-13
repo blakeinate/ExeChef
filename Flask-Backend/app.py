@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required, create_refresh_token,
     get_jwt_identity, get_raw_jwt, jwt_optional
 )
-from flask_pymongo import MongoClient
+from flask_pymongo import PyMongo
 from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
 from validate_email import validate_email
@@ -29,8 +29,8 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 
 api = Api(app)
 jwt = JWTManager(app)
-client = MongoClient()
-db = client['exechef']
+client = PyMongo(app)
+#db = client['exechef']
 
 @app.after_request
 def after_request(response):
@@ -43,7 +43,7 @@ def after_request(response):
 def check_if_token_in_blacklist(decrypted_token):
     try:
         jti = decrypted_token['jti']
-        cursor = db.blacklist.find_one({'token': str(jti)})
+        cursor = client.db.blacklist.find_one({'token': str(jti)})
         if cursor:
             return True
         else:
@@ -54,7 +54,7 @@ def check_if_token_in_blacklist(decrypted_token):
 #upon logout store keys in blacklist
 def add_to_blacklist(jti):
     try:
-        result = db.blacklist.insert_one(
+        result = client.db.blacklist.insert_one(
         {
             'token': str(jti)
         })
@@ -93,7 +93,7 @@ def upload_image(file):
 
 class Users(Resource):
     def get(self):
-        cursor = db.accounts.find()
+        cursor = client.db.accounts.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'users': true_json_data})
@@ -107,9 +107,9 @@ class User(Resource):
         _account_name = get_jwt_identity()
         current_user = None
         if _account_name:
-            current_user = db.accounts.find_one({'username': _account_name})
+            current_user = client.db.accounts.find_one({'username': _account_name})
         if username:
-            provided_user = db.accounts.find_one({'username': str(username)}, {'password': 0, 'email': 0})
+            provided_user = client.db.accounts.find_one({'username': str(username)}, {'password': 0, 'email': 0})
             if not provided_user:
                 abort(400, message='No account found associated with provided id.')
             bson_to_json = dumps(provided_user)
@@ -154,7 +154,7 @@ class User(Resource):
         #if new email provided make sure its valid
         if _account_email:
             if validate_email(str(_account_email)):
-                cursor2 = db.accounts.find_one({'email': str(_account_email)})
+                cursor2 = client.db.accounts.find_one({'email': str(_account_email)})
                 if cursor2 != None:
                     abort(422, message='The email provided is already in use.')
                 else:
@@ -182,7 +182,7 @@ class User(Resource):
 
         #make sure old pass provided matches stored password
         if passwords_provided:
-            cursor = db.accounts.find_one({'username': _account_name})
+            cursor = client.db.accounts.find_one({'username': _account_name})
             if cursor['password'] == _old_password:
                 to_update['password'] = _new_password
             else:
@@ -194,14 +194,14 @@ class User(Resource):
         if isinstance(following, (list,)):
 
             #remove user from the followers lists of users no longer following
-            user_info = db.accounts.find_one({'username': _account_name})
+            user_info = client.db.accounts.find_one({'username': _account_name})
             removed_users = []
             if user_info.get('following'):
                 for following_user in user_info.get('following'):
                     if following_user not in following:
                         removed_users.append({'username': following_user})
             if removed_users:
-                result = db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
+                result = client.db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
                 if not result.acknowledged:
                     abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
 
@@ -211,7 +211,7 @@ class User(Resource):
                 if following_user not in user_info.get('following'):
                     added_users.append({'username': following_user})
             if added_users:
-                result = db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
+                result = client.db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
                 if not result.acknowledged:
                     abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
 
@@ -221,19 +221,19 @@ class User(Resource):
             to_update['followers'] = followers
 
         #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': str(_account_name)})
+        cursor = client.db.accounts.find_one({'username': str(_account_name)})
 
         to_change = {}
         if to_update:
             to_change['$set'] = to_update
 
         if to_change:
-            result = db.accounts.update_one(
+            result = client.db.accounts.update_one(
                 {'username': str(_account_name)},
                 to_change
             )
             if result.acknowledged:
-                cursor = db.accounts.find_one({'username': str(_account_name)})
+                cursor = client.db.accounts.find_one({'username': str(_account_name)})
                 bson_to_json = dumps(cursor)
                 true_json_data = json.loads(bson_to_json)
                 resp = jsonify({'user': true_json_data})
@@ -261,16 +261,16 @@ class User(Resource):
         #add password stuff here, encrypting and uploading
 
         #check if username exists
-        cursor = db.accounts.find_one({'username': str(_account_name)})
+        cursor = client.db.accounts.find_one({'username': str(_account_name)})
         if cursor != None:
             abort(422, message='The username provided is already in use.')
 
-        cursor2 = db.accounts.find_one({'email': str(_account_email)})
+        cursor2 = client.db.accounts.find_one({'email': str(_account_email)})
         if cursor2 != None:
             abort(422, message='The email provided is already in use.')
 
-        #upload new account info to pymongo db
-        result = db.accounts.insert_one(
+        #upload new account info to pymongo client.db
+        result = client.db.accounts.insert_one(
         {
             'username': _account_name,
             'password': _account_password,
@@ -281,7 +281,7 @@ class User(Resource):
             'created': [],
             'bio': '',
         })
-        created = db.accounts.find_one({'username': _account_name})
+        created = client.db.accounts.find_one({'username': _account_name})
         bson_to_json = dumps(created)
         true_json_data = json.loads(bson_to_json)
         #return the id of the new account
@@ -305,9 +305,9 @@ class Update_Password(Resource):
         if not _new_password:
             abort(422, message='The provided new password is invalid.')
 
-        cursor = db.accounts.find_one({'username': _account_name})
+        cursor = client.db.accounts.find_one({'username': _account_name})
         if cursor['password'] == _old_password:
-            result = db.accounts.update_one(
+            result = client.db.accounts.update_one(
                 {'username': _account_name},
                 {
                     '$set': {
@@ -335,9 +335,9 @@ class Login(Resource):
 
         if _account_login:
             if validate_email(str(_account_login)):
-                cursor = db.accounts.find_one({'email': str(_account_login)})
+                cursor = client.db.accounts.find_one({'email': str(_account_login)})
             else:
-                cursor = db.accounts.find_one({'username': str(_account_login)})
+                cursor = client.db.accounts.find_one({'username': str(_account_login)})
         else:
             abort(422, message='Please provide a valid username/email.')
 
@@ -405,12 +405,12 @@ class Favorites(Resource):
     def get(self):
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': str(_account_name)})
+        cursor = client.db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
         for recipe_id in cursor.get('favorites'):
-            recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+            recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
             if recipe_cursor == None:
                 continue
             recipes.append(recipe_cursor)
@@ -428,12 +428,12 @@ class User_Recipes(Resource):
     def get(self):
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
-        cursor = db.accounts.find_one({'username': str(_account_name)})
+        cursor = client.db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
         for recipe_id in cursor.get('created'):
-            recipe_cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+            recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
             if recipe_cursor == None:
                 continue
             recipes.append(recipe_cursor)
@@ -451,13 +451,13 @@ class Following_Feed(Resource):
         num_to_get = int(num_to_get)
         _account_name = get_jwt_identity()
         if _account_name:
-            following = db.accounts.find_one({'username': str(_account_name)}).get('following')
+            following = client.db.accounts.find_one({'username': str(_account_name)}).get('following')
             following_list = []
             for item in following:
                 following_list.append({'author': item})
-            recent_recipes = db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+            recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
         else:
-            recent_recipes = db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
+            recent_recipes = client.db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
         bson_to_json = dumps(recent_recipes)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes': true_json_data})
@@ -467,7 +467,7 @@ class Following_Feed(Resource):
 #returns list of all recipes
 class Recipes(Resource):
     def get(self):
-        cursor = db.recipes.find()
+        cursor = client.db.recipes.find()
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes': true_json_data})
@@ -505,7 +505,7 @@ class Recipe(Resource):
         #from trying to make it appear another person made the recipe
         _account_name = get_jwt_identity()
 
-        result = db.recipes.insert_one(
+        result = client.db.recipes.insert_one(
         {
             'name' : name,
             'image_name': secure_filename,
@@ -520,10 +520,10 @@ class Recipe(Resource):
         })
 
         #add recipe to user's created recipes
-        db.accounts.update({'username': _account_name}, {'$push': {'created': str(result.inserted_id)}})
+        client.db.accounts.update({'username': _account_name}, {'$push': {'created': str(result.inserted_id)}})
 
         #return the new recipe
-        recipe = db.recipes.find_one({'_id': result.inserted_id})
+        recipe = client.db.recipes.find_one({'_id': result.inserted_id})
         bson_to_json = dumps(recipe)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipe': true_json_data})
@@ -534,12 +534,12 @@ class Recipe(Resource):
 
     @jwt_optional
     def get(self, recipe_id):
-        cursor = db.recipes.find_one({'_id': ObjectId(recipe_id)})
+        cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
         if cursor == None:
             abort(400, message='No recipe found with the provided recipe ID.')
         if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
             abort(403, message='Private recipe is owned by another user.')
-        author = db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
+        author = client.db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
         author['user'] = author
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
@@ -558,7 +558,7 @@ class Recipe(Resource):
             'private',
             'ingredients',
         ]
-        db = client.exechef
+        #db = client.exechef
 
         json_data = request.get_json(force=True)
 
@@ -569,7 +569,7 @@ class Recipe(Resource):
 
         # verifies user attempting to modify recipe owns the recipe
         _account_name = get_jwt_identity()
-        users_account = db.accounts.find_one({'username': str(_account_name)})
+        users_account = client.db.accounts.find_one({'username': str(_account_name)})
         if recipe_id not in users_account.get('created'):
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
 
@@ -584,7 +584,7 @@ class Recipe(Resource):
 
         to_update['modified_date'] = datetime.now()
 
-        result = db.recipes.update_one(
+        result = client.db.recipes.update_one(
             {'_id': ObjectId(recipe_id)},
             {
                 '$set': to_update
@@ -602,21 +602,21 @@ class Recipe(Resource):
 
         # verifies user attempting to delete recipe owns the recipe
         _account_name = get_jwt_identity()
-        users_account = db.accounts.find_one({'username': _account_name})
+        users_account = client.db.accounts.find_one({'username': _account_name})
         if str(recipe_id) not in users_account['created']:
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
 
-        favorited_by = db.accounts.find({'favorites': [str(recipe_id)]})
+        favorited_by = client.db.accounts.find({'favorites': [str(recipe_id)]})
 
         users_to_remove = []
         for user in favorited_by:
             users_to_remove.append({'username': user.get('username')})
 
-        result = db.recipes.delete_one({'_id': recipe_id})
+        result = client.db.recipes.delete_one({'_id': recipe_id})
 
         if result.acknowledged:
             if users_to_remove:
-                db.accounts.update_many({'$or': users_to_remove}, {'$pull': {'favorites': str(recipe_id)}})
+                client.db.accounts.update_many({'$or': users_to_remove}, {'$pull': {'favorites': str(recipe_id)}})
             return Response(status=200)
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
@@ -634,7 +634,7 @@ class Search_Tags(Resource):
     def get(self, tag_str):
         #split string and remove non alphanumeric
         tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split(',')]
-        cursor = db.recipes.find({'$or': tag_list, 'private': 'False'})
+        cursor = client.db.recipes.find({'$or': tag_list, 'private': 'False'})
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes': true_json_data})
