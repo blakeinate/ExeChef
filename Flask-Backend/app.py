@@ -115,8 +115,11 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if provided_user.get('username') in current_user.get('following'):
-                    following = True
+                if current_user.get('following'):
+                    if provided_user.get('username') in current_user.get('following'):
+                        following = True
+                    else:
+                        following = False
                 else:
                     following = False
                 true_json_data['following'] = following
@@ -193,9 +196,10 @@ class User(Resource):
             #remove user from the followers lists of users no longer following
             user_info = db.accounts.find_one({'username': _account_name})
             removed_users = []
-            for following_user in user_info.get('following'):
-                if following_user not in following:
-                    removed_users.append({'username': following_user})
+            if user_info.get('following'):
+                for following_user in user_info.get('following'):
+                    if following_user not in following:
+                        removed_users.append({'username': following_user})
             if removed_users:
                 result = db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
                 if not result.acknowledged:
@@ -482,12 +486,12 @@ class Recipe(Resource):
                 image = None
 
         json_data = request.get_json(force=True)
-        name = json_data.get('name')
-        tags = json_data.get('tags')
-        steps = json_data.get('steps')
-        description = json_data.get('description')
-        private = json_data.get('private')
-        ingredients = json_data.get('ingredients')
+        name = json_data.get('recipe').get('name')
+        tags = json_data.get('recipe').get('tags')
+        steps = json_data.get('recipe').get('steps')
+        description = json_data.get('recipe').get('description')
+        private = json_data.get('recipe').get('private')
+        ingredients = json_data.get('recipe').get('ingredients')
 
         if (not name) or (not private) or (not ingredients) or (not steps):
             abort(422, message='Some required fields were not provided.')
@@ -589,7 +593,6 @@ class Recipe(Resource):
 
     @jwt_required
     def delete(self, recipe_id):
-
         # change recipe_id to BSON id format
         recipe_id = ObjectId(recipe_id)
 
@@ -603,7 +606,7 @@ class Recipe(Resource):
 
         users_to_remove = []
         for user in favorited_by:
-            users_to_remove.append(user.get('username'))
+            users_to_remove.append({'username': user.get('username')})
 
         result = db.recipes.delete_one({'_id': recipe_id})
 
@@ -655,8 +658,6 @@ api.add_resource(Favorites, '/Favorites')
 api.add_resource(User_Recipes, '/UserRecipes')
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
-#api.add_resource(Create_Recipe, '/CreateRecipe')
-#api.add_resource(Delete_Recipe, '/DeleteRecipe/<recipe_id>')
 api.add_resource(Search_Tags, '/SearchTags/<tag_str>')
 
 
