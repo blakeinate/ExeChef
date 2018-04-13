@@ -207,9 +207,14 @@ class User(Resource):
 
             #add user to the followers list of users now following
             added_users = []
-            for following_user in following:
-                if following_user not in user_info.get('following'):
+            if isinstance(user_info.get('following'), (list,)):
+                for following_user in following:
+                    if following_user not in user_info.get('following'):
+                        added_users.append({'username': following_user})
+            else:
+                for following_user in following:
                     added_users.append({'username': following_user})
+
             if added_users:
                 result = client.db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
                 if not result.acknowledged:
@@ -409,11 +414,12 @@ class Favorites(Resource):
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
-        for recipe_id in cursor.get('favorites'):
-            recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
-            if recipe_cursor == None:
-                continue
-            recipes.append(recipe_cursor)
+        if isinstance(cursor.get('favorites'), (list,)):
+            for recipe_id in cursor.get('favorites'):
+                recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
+                if recipe_cursor == None:
+                    continue
+                recipes.append(recipe_cursor)
 
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
@@ -432,11 +438,12 @@ class User_Recipes(Resource):
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         recipes = []
-        for recipe_id in cursor.get('created'):
-            recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
-            if recipe_cursor == None:
-                continue
-            recipes.append(recipe_cursor)
+        if isinstance(cursor.get('created'), (list,)):
+            for recipe_id in cursor.get('created'):
+                recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
+                if recipe_cursor == None:
+                    continue
+                recipes.append(recipe_cursor)
 
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
@@ -453,9 +460,10 @@ class Following_Feed(Resource):
         if _account_name:
             following = client.db.accounts.find_one({'username': str(_account_name)}).get('following')
             following_list = []
-            for item in following:
-                following_list.append({'author': item})
-            recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+            if isinstance(following, (list,)):
+                for item in following:
+                    following_list.append({'author': item})
+                recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
         else:
             recent_recipes = client.db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
         bson_to_json = dumps(recent_recipes)
@@ -570,9 +578,11 @@ class Recipe(Resource):
         # verifies user attempting to modify recipe owns the recipe
         _account_name = get_jwt_identity()
         users_account = client.db.accounts.find_one({'username': str(_account_name)})
-        if recipe_id not in users_account.get('created'):
+        if isinstance(users_account.get('created'), (list,)):
+            if recipe_id not in users_account.get('created'):
+                abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
+        else:
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
-
         to_update = {}
         # removes stuff we don't want to update and updates modified date
         for key, value in json_data.iteritems():
