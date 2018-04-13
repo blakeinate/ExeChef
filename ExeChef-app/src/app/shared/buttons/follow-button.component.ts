@@ -19,6 +19,7 @@ export class FollowButtonComponent {
 
   profile:Profile;
   @Input() set profileInput(profile: Profile){
+    console.log(profile);
     this.profile = profile;
     this.userService.isAuthenticated.subscribe(
       (authenticated) =>{
@@ -47,8 +48,9 @@ export class FollowButtonComponent {
 
           this.userService.currentUser.subscribe(
             (userData: User) => {
-              this.followingList = userData.following;
-              //  console.log("follow",this.followingList);
+              this.followingList = userData.followers;
+             console.log("follow list",this.followingList);
+             console.log("user we want to follow",this.profile.username);
                 // Follow this profile if we aren't already
               if(!this.followingList.includes(this.profile.username)){
                 this.followingList.push(this.profile.username);
@@ -62,7 +64,7 @@ export class FollowButtonComponent {
                 );
               }else{
                   // Otherwise, unfollow this profile
-                this.followingList = userData.following.filter(username => this.profile.username !== username);
+                this.followingList = userData.followers.filter(username => this.profile.username !== username);
                 //console.log("unfollow",this.followingList);
                 this.profilesService.follow(this.followingList)
                 .subscribe(

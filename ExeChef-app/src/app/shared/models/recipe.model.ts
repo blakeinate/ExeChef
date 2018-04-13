@@ -2,7 +2,7 @@ import {Profile }from './profile.model';
 import {Ingredient}from './ingredient.model';
 
 export class Recipe{
-    recipe_id:string;
+    _id:string;
     name : string;
     image_name: string;
     tags: Array<string> = [];

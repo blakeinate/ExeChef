@@ -21,13 +21,14 @@ export class RecipesService {
   save(recipe): Observable<Recipe> {
     // If we're updating an existing article
     if (recipe.recipe_id) {
-      return this.apiService.put('/Recipe/' + recipe.recipe_id, {recipe: recipe})
+      return this.apiService.put('/Recipe/' + recipe._id, {recipe: recipe})
              .map(data => data.recipe);
 
     // Otherwise, create a new article
     } else {
-      return this.apiService.post('/Recipe/', {recipe: recipe})
+      return this.apiService.post('/Recipe', {recipe: recipe})
              .map(data => data.recipe);
+
     }
   }
 

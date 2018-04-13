@@ -24,7 +24,7 @@ export class ProfilesService {
   }
 
   follow(followList: string[]):Observable<Profile>{
-    return this.apiService.put("/User",{"followed":followList});
+    return this.apiService.put("/User",{"following":followList});
   }
 
   // unfollow(username: string):Observable<Profile>{

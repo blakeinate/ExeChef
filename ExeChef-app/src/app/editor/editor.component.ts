@@ -12,9 +12,9 @@ export class EditorComponent implements OnInit {
 
 
   //********LEFT TO DO****/
-  //add ingredient form
   //patch existing steps that might already exist
   //patch existing tags and steps that might exist from a pre existing article
+  //FIX bug with duplicate slider movement
 
   recipe: Recipe = new Recipe();
   recipeForm: FormGroup;
@@ -29,6 +29,12 @@ export class EditorComponent implements OnInit {
     {
       name:"teaspoon",
       abrev: "tsp",
+      max: 20,
+      step: .25
+    },
+    {
+      name:"tablespoon",
+      abrev: "tbsp",
       max: 20,
       step: .25
     },
@@ -164,7 +170,7 @@ export class EditorComponent implements OnInit {
   ) {
     // use the FormBuilder to create a form group
     this.recipeForm = this.fb.group({
-      title: '',
+      name: '',
       description: '',
       ingredients: this.fb.array([
         this.initIngredients(),
@@ -269,16 +275,17 @@ export class EditorComponent implements OnInit {
     // // update the model
     this.updateRecipe(this.recipeForm.value);
     console.log("this is the recipe object that i am sending",this.recipe);
-    //
-    // // post the changes
-    // this.recipesService
-    // .save(this.recipe)
-    // .subscribe(
-    //   recipe => this.router.navigateByUrl('/Recipe/' + recipe.recipe_id),
-    //   err => {
-    //     this.errors = err;
-    //     this.isSubmitting = false;
-    //   }
-    // );
+
+    // post the changes
+    this.recipesService
+    .save(this.recipe)
+    .subscribe(
+      //recipe => console.log(recipe),
+     recipe => this.router.navigateByUrl('/Recipe/' + recipe._id),
+      err => {
+        this.errors = err;
+        this.isSubmitting = false;
+      }
+    );
   }
 }

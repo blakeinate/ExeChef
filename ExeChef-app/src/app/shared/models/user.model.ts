@@ -4,8 +4,8 @@ export class User{
   email: string;
   favorites: string[];
   created: string[];
-  following: string[];
-  followed: string[];
+  followers: string[];
+  following: boolean;
   access_token: string;
   refresh_token: string;
 }

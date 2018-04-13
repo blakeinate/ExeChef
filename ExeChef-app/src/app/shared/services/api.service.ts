@@ -56,6 +56,12 @@ export class ApiService {
     .map((res:Response) => res.json());
   }
 
+  getRefresh(path: string, params: URLSearchParams = new URLSearchParams()): Observable<any> {
+   return this.http.get(`${environment.api_url}${path}`, { headers: this.setHeaders(true), search: params })
+    .catch(this.formatErrors)
+    .map((res:Response) => res.json());
+  }
+
   put(path: string, body: Object = {}): Observable<any> {
     return this.http.put( `${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
         .catch(this.formatErrors)
