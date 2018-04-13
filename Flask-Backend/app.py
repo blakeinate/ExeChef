@@ -115,7 +115,7 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if current_user.get('following'):
+                if isinstance(current_user.get('following'), (list,)):
                     if provided_user.get('username') in current_user.get('following'):
                         following = True
                     else:
@@ -493,7 +493,7 @@ class Recipe(Resource):
         private = json_data.get('recipe').get('private')
         ingredients = json_data.get('recipe').get('ingredients')
 
-        if (not name) or (not private) or (not ingredients) or (not steps):
+        if (name == None) or (private == None) or (ingredients == None) or (steps == None):
             abort(422, message='Some required fields were not provided.')
 
         #upload image and get secure filename
@@ -521,8 +521,12 @@ class Recipe(Resource):
 
         #add recipe to user's created recipes
         db.accounts.update({'username': _account_name}, {'$push': {'created': str(result.inserted_id)}})
-        #return the id of the new recipe
-        resp = jsonify({'id': str(result.inserted_id)})
+
+        #return the new recipe
+        recipe = db.recipes.find_one({'_id': result.inserted_id})
+        bson_to_json = dumps(recipe)
+        true_json_data = json.loads(bson_to_json)
+        resp = jsonify({'recipe': true_json_data})
         resp.status_code = 201
         return resp
 
