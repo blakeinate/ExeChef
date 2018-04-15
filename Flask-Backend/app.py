@@ -100,6 +100,47 @@ def remove_old_image(filename):
         return False
 
 
+def handle_recipe_image(request, recipe_id=None):
+    # upload image for recipe
+    image = None;
+    if 'file' in request.files:
+        image = request.files['file']
+        if image.filename == '':
+            image = None
+    # upload image and get secure filename
+    image_filename = None
+    if image:
+        image_filename = upload_image(image)
+    if image_filename:
+        if recipe_id:
+            recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
+            if recipe.get('image_name'):
+                remove_old_image(recipe.get('image_name'))
+        return image_filename
+    else:
+        return False
+
+
+def handle_user_image(request, username=None):
+    # upload image for recipe
+    image = None;
+    if 'file' in request.files:
+        image = request.files['file']
+        if image.filename == '':
+            image = None
+    # upload image and get secure filename
+    image_filename = None
+    if image:
+        image_filename = upload_image(image)
+    if image_filename:
+        if username:
+            user = client.db.accounts.find_one({'username': username})
+            if user.get('image_name'):
+                remove_old_image(user.get('image_name'))
+        return image_filename
+    else:
+        return False
+
 class Users(Resource):
     def get(self):
         cursor = client.db.accounts.find()
@@ -160,6 +201,11 @@ class User(Resource):
             abort(422, message='The provided username is invalid.')
 
         to_update = {}
+
+        image_filename = handle_user_image(request, _account_name)
+        if image_filename:
+            to_update['image_name'] = image_filename
+
         #if new email provided make sure its valid
         if _account_email:
             if validate_email(str(_account_email)):
@@ -197,14 +243,13 @@ class User(Resource):
             else:
                 abort(422, message='The current password does not match the password provided.')
 
+        self.update_favorites(favorites, _account_name)
 
-            self.update_favorites(favorites, _account_name)
+        to_update['favorites'] = favorites
 
-            to_update['favorites'] = favorites
+        self.update_following(following, _account_name)
 
-            self.update_following(following, _account_name)
-
-            to_update['following'] = following
+        to_update['following'] = following
 
         if isinstance(followers, (list,)):
             to_update['followers'] = followers
@@ -247,6 +292,19 @@ class User(Resource):
             abort(422, message='The provided password is invalid.')
         if not validate_email(str(_account_email)):
             abort(422, message='The provided email is invalid.')
+
+        #check if image provided
+        image = None;
+        if 'file' in request.files:
+            image = request.files['file']
+            if image.filename == '':
+                image = None
+        #upload image and get secure filename
+        secure_filename = None
+        if image:
+            secure_filename = upload_image(image)
+
+
         #add password stuff here, encrypting and uploading
 
         #check if username exists
@@ -269,6 +327,7 @@ class User(Resource):
             'following': [],
             'created': [],
             'bio': '',
+            'image_name': secure_filename
         })
         created = client.db.accounts.find_one({'username': _account_name})
         bson_to_json = dumps(created)
@@ -529,12 +588,6 @@ class Recipes(Resource):
 class Recipe(Resource):
     @jwt_required
     def post(self):
-        #check if image provided
-        image = None;
-        if 'file' in request.files:
-            image = request.files['file']
-            if image.filename == '':
-                image = None
 
         json_data = request.get_json(force=True)
         name = json_data.get('recipe').get('name')
@@ -547,10 +600,10 @@ class Recipe(Resource):
         if (name == None) or (private == None) or (ingredients == None) or (steps == None):
             abort(422, message='Some required fields were not provided.')
 
-        #upload image and get secure filename
-        secure_filename = None
-        if image:
-            secure_filename = upload_image(image)
+        image_filename = None
+        image_name = handle_recipe_image(request)
+        if image_name:
+            image_filename = image_name
 
         #get author directly from the user logged in to prevent someone
         #from trying to make it appear another person made the recipe
@@ -559,7 +612,7 @@ class Recipe(Resource):
         result = client.db.recipes.insert_one(
         {
             'name' : name,
-            'image_name': secure_filename,
+            'image_name': image_filename,
             'tags': tags,
             'steps': steps,
             'author': _account_name,
@@ -638,24 +691,10 @@ class Recipe(Resource):
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
         to_update = {}
 
+        image_name = handle_recipe_image(recipe_id, request)
 
-        ####################################################
-        #upload image for recipe
-        image = None;
-        if 'file' in request.files:
-            image = request.files['file']
-            if image.filename == '':
-                image = None
-        # upload image and get secure filename
-        secure_filename = None
-        if image:
-            secure_filename = upload_image(image)
-        if secure_filename:
-            recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
-            if recipe.get('image_name'):
-                remove_old_image(recipe.get('image_name'))
-            to_update['image_name'] = secure_filename()
-        ####################################################
+        if image_name:
+            to_update['image_name'] = image_name
 
         # removes stuff we don't want to update and updates modified date
         for key, value in json_data.iteritems():
