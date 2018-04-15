@@ -8,16 +8,23 @@ Brief requirements:
 
 accounts database structure
 {
+    "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+    }
     'username': 'blakeb',
     'password': 'mypassword',
     'email': 'blakeb@gmail.com',
     'favorites': ['someid', 'someid'],
     'created' : ['someid', 'someid']
-    'followed': ['someid', 'someid']
+    'following': ['someusername', 'someusername']
+    'followers' : ['someusername', 'someusername']
 }
 
 recipes database structure
 {
+    "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+    }
     "name" : "cool recipe",
     "image_name": "securefilename.jpeg",
     "tags": ["food", "Mexican"],
@@ -32,6 +39,7 @@ recipes database structure
     }],
     "created_date" : datetime,
     "modified_date" : datetime
+    "favorited_count": 10;
 }
 
 blacklist database structure (front end should never need to touch this)
@@ -135,7 +143,7 @@ Returns: 200 if JWT access token provided:
           },
           "created": [],
           "favorites": [],
-          "followed": [],
+          "following": [],
           "password": "meepmeep",
           "username": "blakeb"
         }
@@ -147,7 +155,7 @@ Requires:
     "Authorization: Bearer <access token here>"
 
   json data in following format :
-  (note: can provide any combination of these as needed, favorite and followed will write over the entire stored list
+  (note: can provide any combination of these as needed, favorite and following will write over the entire stored list
     so provide all the values you want to appear)
     {
      "bio": "some bio here",
@@ -155,7 +163,7 @@ Requires:
      "old_password":"password here",
      "new_password: "new password here"
      "favorites": ["some recipe id", "some recipe id"]
-     "followed": ["some username", "some username:"]
+     "following": ["some username", "some username:"]
      }
 
 
@@ -349,7 +357,7 @@ Alternate returns:
 
 
   ---------------------------------------------------------------
-get followed feed for user
+get following feed for user
 A GET request to the /Feed/<num_to_get> should be made. if no <num_to_get> provided, defaults to 10
 Returns: if valid JWT, returns num_to_get public recipes that are most recent from the users followers
             if no JWT provided, returns num_to_get recent public recipes from all users:
@@ -448,11 +456,11 @@ Returns: if valid JWT:
       "created": [],
       "favorites": [],
       "username": "blakeb",
-      "followed": "True"
+      "following": "True"
     }
   }
-  NOTE: the "followed" option will only be passed if a JWT header is also provided
-  this will compare the current logged in users followed list to the username provided in the URL
+  NOTE: the "following" option will only be passed if a JWT header is also provided
+  this will compare the current logged in users following list to the username provided in the URL
 Requires: Optional JWT Header in the following format:
   "Authorization: Bearer <access token here>"
 
@@ -615,7 +623,8 @@ Returns: a recipe in the following format:
             "do cool stuff",
             "do more cool stuff",
             "eat that shit"
-          ]
+          ],
+          "in_favorites": True #will only show up if JWT provided
         }
     }
   }
@@ -624,6 +633,7 @@ Requires: a recipe_id to be passed at the end of the route
   "Authorization: Bearer <access token here>"
    This is required if a private recipe needs to be accessed.
    The provided token must be associated with the author of recipe.
+   Optional: If JWT provided a 'in_favorites' boolean item will be returned with the recipe
 Alternate returns:
   if id is incorrect:
     400, {'message':'No recipe found with the provided recipe ID.'}

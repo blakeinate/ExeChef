@@ -84,11 +84,20 @@ def upload_image(file):
                     good_filename = True
                 else:
                     count = count + 1
+
         #save to upload folder
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return filename
     else:
         return None
+
+
+def remove_old_image(filename):
+    if os.path.isfile(app.config['UPLOAD_FOLDER'] +filename):
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return True
+    else:
+        return False
 
 
 class Users(Resource):
@@ -115,7 +124,7 @@ class User(Resource):
             bson_to_json = dumps(provided_user)
             true_json_data = json.loads(bson_to_json)
             if current_user:
-                if isinstance(current_user.get('am_i_following'), (list,)):
+                if isinstance(current_user.get('following'), (list,)):
                     if provided_user.get('username') in current_user.get('following'):
                         am_i_following = True
                     else:
@@ -188,37 +197,12 @@ class User(Resource):
             else:
                 abort(422, message='The current password does not match the password provided.')
 
-        if isinstance(favorites, (list,)):
+
+            self.update_favorites(favorites, _account_name)
+
             to_update['favorites'] = favorites
 
-        if isinstance(following, (list,)):
-
-            #remove user from the followers lists of users no longer following
-            user_info = client.db.accounts.find_one({'username': _account_name})
-            removed_users = []
-            if user_info.get('following'):
-                for following_user in user_info.get('following'):
-                    if following_user not in following:
-                        removed_users.append({'username': following_user})
-            if removed_users:
-                result = client.db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
-                if not result.acknowledged:
-                    abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
-
-            #add user to the followers list of users now following
-            added_users = []
-            if isinstance(user_info.get('following'), (list,)):
-                for following_user in following:
-                    if following_user not in user_info.get('following'):
-                        added_users.append({'username': following_user})
-            else:
-                for following_user in following:
-                    added_users.append({'username': following_user})
-
-            if added_users:
-                result = client.db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
-                if not result.acknowledged:
-                    abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
+            self.update_following(following, _account_name)
 
             to_update['following'] = following
 
@@ -294,6 +278,65 @@ class User(Resource):
         resp.status_code = 200
         return resp
 
+    def update_follow(self, following, _account_name):
+        if isinstance(following, (list,)):
+            #remove user from the followers lists of users no longer following
+            user_info = client.db.accounts.find_one({'username': _account_name})
+            removed_users = []
+            if user_info.get('following'):
+                for following_user in user_info.get('following'):
+                    if following_user not in following:
+                        removed_users.append({'username': following_user})
+            if removed_users:
+                result = client.db.accounts.update_many({'$or': removed_users}, {'$pull': {'followers': str(_account_name)}})
+                if not result.acknowledged:
+                    abort(500, message = "Unable to remove user from the follower lists of the user(s) removed from users following list.")
+
+            #add user to the followers list of users now following
+            added_users = []
+            if isinstance(user_info.get('following'), (list,)):
+                for following_user in following:
+                    if following_user not in user_info.get('following'):
+                        added_users.append({'username': following_user})
+            else:
+                for following_user in following:
+                    added_users.append({'username': following_user})
+
+            if added_users:
+                result = client.db.accounts.update_many({'$or': added_users}, {'$push': {'followers': str(_account_name)}})
+                if not result.acknowledged:
+                    abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
+        return
+
+    def update_favorites(self, favorites, _account_name):
+        #increment or decrement favorited_count for new or removed recipes from favorites
+        if isinstance(favorites, (list,)):
+            user_info = client.db.accounts.find_one({'username': _account_name})
+            removed_favorites = []
+            if user_info.get('favorites'):
+                for favorited_recipe in user_info.get('favorites'):
+                    if favorited_recipe not in favorites:
+                        removed_favorites.append({'_id': ObjectId(favorited_recipe)})
+            if removed_favorites:
+                result = client.db.recipes.update_many({'$or': removed_favorites},
+                                                        {'$inc': {'favorited_count': -1}})
+                if not result.acknowledged:
+                    abort(500,
+                          message="Unable to remove user from the follower lists of the user(s) removed from users following list.")
+            added_favorites = []
+            if isinstance(user_info.get('favorites'), (list,)):
+                for favorited_recipe in favorites:
+                    if favorited_recipe not in user_info.get('favorites'):
+                        added_favorites.append({'_id': favorited_recipe})
+            else:
+                for favorited_recipe in favorites:
+                    added_favorites.append({'_id': favorited_recipe})
+
+            if added_favorites:
+                result = client.db.recipes.update_many({'$or': added_favorites}, {'$inc': {'favorited_count': 1}})
+                if not result.acknowledged:
+                    abort(500, message="Unable to add user to the follower lists of the user(s) added to users following list.")
+        return
 
 class Update_Password(Resource):
     @jwt_required
@@ -517,14 +560,15 @@ class Recipe(Resource):
         {
             'name' : name,
             'image_name': secure_filename,
-            'tags' : tags,
+            'tags': tags,
             'steps': steps,
             'author': _account_name,
-            'description' : description,
-            'private' : private,
-            'ingredients' : ingredients,
-            'created_date' : datetime.now(),
-            'modified_date' : datetime.now()
+            'description': description,
+            'private': private,
+            'ingredients': ingredients,
+            'created_date': datetime.now(),
+            'modified_date': datetime.now(),
+            'favorited_count': 0
         })
 
         #add recipe to user's created recipes
@@ -547,8 +591,18 @@ class Recipe(Resource):
             abort(400, message='No recipe found with the provided recipe ID.')
         if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
             abort(403, message='Private recipe is owned by another user.')
+
+        favorited = False
+
+        if get_jwt_identity():
+            current_user = client.db.accounts.find_one({'username': str(get_jwt_identity())}, {'password': 0, 'email': 0})
+            if isinstance(current_user.get('favorites'), (list,)):
+                if str(recipe_id) in current_user.get('favorites'):
+                    favorited = True
+
         author = client.db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
-        author['user'] = author
+        cursor['user'] = author
+        cursor['in_favorites'] = favorited
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipe': true_json_data})
@@ -574,7 +628,6 @@ class Recipe(Resource):
         if not recipe_id:
             abort(422, message='No recipe ID provided.')
 
-
         # verifies user attempting to modify recipe owns the recipe
         _account_name = get_jwt_identity()
         users_account = client.db.accounts.find_one({'username': str(_account_name)})
@@ -584,10 +637,31 @@ class Recipe(Resource):
         else:
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
         to_update = {}
+
+
+        ####################################################
+        #upload image for recipe
+        image = None;
+        if 'file' in request.files:
+            image = request.files['file']
+            if image.filename == '':
+                image = None
+        # upload image and get secure filename
+        secure_filename = None
+        if image:
+            secure_filename = upload_image(image)
+        if secure_filename:
+            recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
+            if recipe.get('image_name'):
+                remove_old_image(recipe.get('image_name'))
+            to_update['image_name'] = secure_filename()
+        ####################################################
+
         # removes stuff we don't want to update and updates modified date
         for key, value in json_data.iteritems():
             if key in acceptable_entries:
                 to_update[key] = value
+
 
         if not to_update:
             abort(422, message='No data provided to update')
@@ -630,10 +704,6 @@ class Recipe(Resource):
             return Response(status=200)
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
-
-
-
-
 
 
 
