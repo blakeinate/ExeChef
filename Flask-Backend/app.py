@@ -311,8 +311,6 @@ class User(Resource):
         if cursor2 != None:
             abort(422, message='The email provided is already in use.')
 
-        image_filename = handle_user_image(request)
-
         #upload new account info to pymongo client.db
         result = client.db.accounts.insert_one(
         {
@@ -324,7 +322,7 @@ class User(Resource):
             'following': [],
             'created': [],
             'bio': '',
-            'image_name': image_filename
+            'image_name': None
         })
         created = client.db.accounts.find_one({'username': _account_name})
         bson_to_json = dumps(created)
