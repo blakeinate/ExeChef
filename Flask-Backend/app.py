@@ -104,7 +104,7 @@ def handle_recipe_image(request, recipe_id=None):
     # upload image for recipe
     image = None;
     if 'file' in request.files:
-        image = request.files['file']
+        image = request.files['image']
         if image.filename == '':
             image = None
     # upload image and get secure filename
@@ -118,14 +118,14 @@ def handle_recipe_image(request, recipe_id=None):
                 remove_old_image(recipe.get('image_name'))
         return image_filename
     else:
-        return False
+        return None
 
 
 def handle_user_image(request, username=None):
     # upload image for recipe
     image = None;
     if 'file' in request.files:
-        image = request.files['file']
+        image = request.files['image']
         if image.filename == '':
             image = None
     # upload image and get secure filename
@@ -139,7 +139,7 @@ def handle_user_image(request, username=None):
                 remove_old_image(user.get('image_name'))
         return image_filename
     else:
-        return False
+        return None
 
 class Users(Resource):
     def get(self):
@@ -195,16 +195,13 @@ class User(Resource):
         favorites = json_data.get('favorites')
         following = json_data.get('following')
         followers = json_data.get('followers')
+        user_image = json_data.get('image_name')
         _account_name = get_jwt_identity()
 
         if not _account_name:
             abort(422, message='The provided username is invalid.')
 
         to_update = {}
-
-        image_filename = handle_user_image(request, _account_name)
-        if image_filename:
-            to_update['image_name'] = image_filename
 
         #if new email provided make sure its valid
         if _account_email:
@@ -257,6 +254,16 @@ class User(Resource):
         #return list of recipes from user {'userFavorites': []}
         cursor = client.db.accounts.find_one({'username': str(_account_name)})
 
+        image_filename = handle_user_image(request, _account_name)
+        if image_filename:
+            to_update['image_name'] = image_filename
+
+        if user_image == 'remove':
+            user = client.db.accounts.find_one({'username': _account_name})
+            if user.get('image_name'):
+                remove_old_image(user.get('image_name'))
+            to_update['image_name'] = None
+
         to_change = {}
         if to_update:
             to_change['$set'] = to_update
@@ -293,18 +300,6 @@ class User(Resource):
         if not validate_email(str(_account_email)):
             abort(422, message='The provided email is invalid.')
 
-        #check if image provided
-        image = None;
-        if 'file' in request.files:
-            image = request.files['file']
-            if image.filename == '':
-                image = None
-        #upload image and get secure filename
-        secure_filename = None
-        if image:
-            secure_filename = upload_image(image)
-
-
         #add password stuff here, encrypting and uploading
 
         #check if username exists
@@ -315,6 +310,8 @@ class User(Resource):
         cursor2 = client.db.accounts.find_one({'email': str(_account_email)})
         if cursor2 != None:
             abort(422, message='The email provided is already in use.')
+
+        image_filename = handle_user_image(request)
 
         #upload new account info to pymongo client.db
         result = client.db.accounts.insert_one(
@@ -327,7 +324,7 @@ class User(Resource):
             'following': [],
             'created': [],
             'bio': '',
-            'image_name': secure_filename
+            'image_name': image_filename
         })
         created = client.db.accounts.find_one({'username': _account_name})
         bson_to_json = dumps(created)
@@ -596,6 +593,7 @@ class Recipe(Resource):
         description = json_data.get('recipe').get('description')
         private = json_data.get('recipe').get('private')
         ingredients = json_data.get('recipe').get('ingredients')
+        recipe_image = json_data.get('recipe').get('image_name')
 
         if (name == None) or (private == None) or (ingredients == None) or (steps == None):
             abort(422, message='Some required fields were not provided.')
@@ -673,11 +671,10 @@ class Recipe(Resource):
             'private',
             'ingredients',
         ]
-        #db = client.exechef
 
         json_data = request.get_json(force=True)
-
-        recipe_id = json_data.get('id')
+        recipe_image = json_data.get('recipe').get('image_name')
+        recipe_id = json_data.get('recipe').get('id')
         if not recipe_id:
             abort(422, message='No recipe ID provided.')
 
@@ -692,12 +689,18 @@ class Recipe(Resource):
         to_update = {}
 
         image_name = handle_recipe_image(recipe_id, request)
-
         if image_name:
             to_update['image_name'] = image_name
 
+        if recipe_image == 'remove':
+            recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
+            if recipe.get('image_name'):
+                remove_old_image(recipe.get('image_name'))
+            to_update['image_name'] = None
+
+
         # removes stuff we don't want to update and updates modified date
-        for key, value in json_data.iteritems():
+        for key, value in json_data.get('recipe').iteritems():
             if key in acceptable_entries:
                 to_update[key] = value
 
@@ -734,6 +737,12 @@ class Recipe(Resource):
         users_to_remove = []
         for user in favorited_by:
             users_to_remove.append({'username': user.get('username')})
+
+        #delete image since recipe will be deleted
+        recipe = client.db.recipes.find_one({'_id': recipe_id})
+        image_filename = recipe.get('image_name')
+        if image_filename:
+            remove_old_image(image_filename)
 
         result = client.db.recipes.delete_one({'_id': recipe_id})
 
@@ -776,7 +785,6 @@ api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User/<username>', '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
-#api.add_resource(Create_Account, '/CreateAccount')
 api.add_resource(Favorites, '/Favorites')
 api.add_resource(User_Recipes, '/UserRecipes')
 api.add_resource(Recipes, '/Recipes')

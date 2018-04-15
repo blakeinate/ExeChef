@@ -12,6 +12,7 @@ accounts database structure
         "$oid": "5a80e397485b9265f90852db"
     }
     'username': 'blakeb',
+    'image_name': 'securefilename.jpeg',
     'password': 'mypassword',
     'email': 'blakeb@gmail.com',
     'favorites': ['someid', 'someid'],
@@ -131,7 +132,7 @@ Alternate returns:
 
 
 
-update user bio, email, favorite, or password
+update user bio, email, favorite, image, or password
 
 A PUT request to /User should be made.
 Returns: 200 if JWT access token provided:
@@ -166,6 +167,9 @@ Requires:
      "following": ["some username", "some username:"]
      }
 
+    To send an image, the image holder needs to be named "image"
+    to remove profile image from the user without providing new image,
+    you need to pass 'image_name' = 'remove'
 
 Alternate returns:
   if no access token provided:
@@ -495,8 +499,8 @@ Requires: recipe information in the following format:
     "ingredients": [{"name":"goodgood", "amount":"tree-fitty", "unit":"pounds"}]
   }
   OPTIONAL:
-    passing a file "file" with the json will upload it as an image associated
-    with the recipe
+
+    To send an image, the image holder needs to be named "image"
 
 
   Header in the following format:
@@ -534,6 +538,11 @@ Requires: recipe information in the following format (fields besides id can be m
 
   Header in the following format:
     "Authorization: Bearer <access token here>"
+
+
+    To send an image, the image holder needs to be named "image"
+    to remove profile image from the user without providing new image,
+    you need to pass 'image_name' = 'remove'
 
 Alternate returns:
   if no access token provided:
