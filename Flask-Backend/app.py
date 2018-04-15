@@ -337,7 +337,7 @@ class User(Resource):
         resp.status_code = 200
         return resp
 
-    def update_follow(self, following, _account_name):
+    def update_following(self, following, _account_name):
         if isinstance(following, (list,)):
             #remove user from the followers lists of users no longer following
             user_info = client.db.accounts.find_one({'username': _account_name})
