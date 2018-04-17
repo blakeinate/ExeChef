@@ -70,73 +70,77 @@ def allowed_file(filename):
 
 
 #uploads image to server and returns secure filename
-def upload_image(file):
+def upload_image(file, username):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+        try:
+            os.makedirs(app.config['UPLOAD_FOLDER'] + str(username))
+        except OSError:
+            pass
         #make sure filename is unique in folder
-        if os.path.isfile(app.config['UPLOAD_FOLDER'] + filename):
+        if os.path.isfile(app.config['UPLOAD_FOLDER'] + str(username) + '/' + filename):
             good_filename = False
             count = 0
             #if not unique, append count to beginning of filename until it is unique
             while(not good_filename):
-                if os.path.isfile(app.config['UPLOAD_FOLDER'] + str(count) + filename) == False:
+                if os.path.isfile(app.config['UPLOAD_FOLDER'] + str(username) + '/' + str(count) + filename) == False:
                     filename = str(count) + filename
                     good_filename = True
                 else:
                     count = count + 1
 
         #save to upload folder
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'] + str(username) + '/', filename))
         return filename
     else:
         return None
 
 
-def remove_old_image(filename):
-    if os.path.isfile(app.config['UPLOAD_FOLDER'] +filename):
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+def remove_old_image(filename, username):
+    if os.path.isfile(app.config['UPLOAD_FOLDER'] + str(username) + '/' +filename):
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER']+ str(username) + '/', filename))
         return True
     else:
         return False
 
 
-def handle_recipe_image(request, recipe_id=None):
+def handle_recipe_image(recipe_request, username, recipe_id=None):
     # upload image for recipe
     image = None;
-    if 'file' in request.files:
-        image = request.files['image']
+    if 'file' in recipe_request.files:
+        image = recipe_request.files['image']
         if image.filename == '':
             image = None
     # upload image and get secure filename
     image_filename = None
     if image:
-        image_filename = upload_image(image)
+        image_filename = upload_image(image, username)
     if image_filename:
         if recipe_id:
             recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
             if recipe.get('image_name'):
-                remove_old_image(recipe.get('image_name'))
+                remove_old_image(recipe.get('image_name'), username)
         return image_filename
     else:
         return None
 
 
-def handle_user_image(request, username=None):
+def handle_user_image(user_request, username):
     # upload image for recipe
     image = None;
-    if 'file' in request.files:
-        image = request.files['image']
+    if 'file' in user_request.files:
+        image = user_request.files['image']
         if image.filename == '':
             image = None
     # upload image and get secure filename
     image_filename = None
     if image:
-        image_filename = upload_image(image)
+        image_filename = upload_image(image, username)
     if image_filename:
         if username:
             user = client.db.accounts.find_one({'username': username})
             if user.get('image_name'):
-                remove_old_image(user.get('image_name'))
+                remove_old_image(user.get('image_name'), username)
         return image_filename
     else:
         return None
@@ -261,7 +265,7 @@ class User(Resource):
         if user_image == 'remove':
             user = client.db.accounts.find_one({'username': _account_name})
             if user.get('image_name'):
-                remove_old_image(user.get('image_name'))
+                remove_old_image(user.get('image_name'), _account_name)
             to_update['image_name'] = None
 
         to_change = {}
@@ -596,14 +600,15 @@ class Recipe(Resource):
         if (name == None) or (private == None) or (ingredients == None) or (steps == None):
             abort(422, message='Some required fields were not provided.')
 
-        image_filename = None
-        image_name = handle_recipe_image(request)
-        if image_name:
-            image_filename = image_name
-
         #get author directly from the user logged in to prevent someone
         #from trying to make it appear another person made the recipe
         _account_name = get_jwt_identity()
+
+        image_filename = None
+        image_name = handle_recipe_image(request, _account_name)
+        if image_name:
+            image_filename = image_name
+
 
         result = client.db.recipes.insert_one(
         {
@@ -627,6 +632,7 @@ class Recipe(Resource):
         recipe = client.db.recipes.find_one({'_id': result.inserted_id})
         bson_to_json = dumps(recipe)
         true_json_data = json.loads(bson_to_json)
+        print true_json_data
         resp = jsonify({'recipe': true_json_data})
         resp.status_code = 201
         return resp
@@ -686,14 +692,14 @@ class Recipe(Resource):
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
         to_update = {}
 
-        image_name = handle_recipe_image(recipe_id, request)
+        image_name = handle_recipe_image(request, _account_name, recipe_id)
         if image_name:
             to_update['image_name'] = image_name
 
         if recipe_image == 'remove':
             recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
             if recipe.get('image_name'):
-                remove_old_image(recipe.get('image_name'))
+                remove_old_image(recipe.get('image_name'), _account_name)
             to_update['image_name'] = None
 
 
@@ -740,7 +746,7 @@ class Recipe(Resource):
         recipe = client.db.recipes.find_one({'_id': recipe_id})
         image_filename = recipe.get('image_name')
         if image_filename:
-            remove_old_image(image_filename)
+            remove_old_image(image_filename, _account_name)
 
         result = client.db.recipes.delete_one({'_id': recipe_id})
 

@@ -477,21 +477,23 @@ class TestDataUpdating(unittest.TestCase):
         response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
         recipe_id = response.json().get('recipe').get('_id').get('$oid')
         to_update = {
-            'id': str(recipe_id),
-            'name': 'somenamehere',
-            'tags': ['dankness', 'goodfood', 'meepmoooperr'],
-            'steps': [
-              'heat oven',
-              'eat the food'
-            ],
-            'private':'True',
-            'ingredients': [
-                {
-                    'amount': 'tree-forty',
-                    'name': 'daneek',
-                    'unit': 'pounds'
+            'recipe': {
+                'id': str(recipe_id),
+                'name': 'somenamehere',
+                'tags': ['dankness', 'goodfood', 'meepmoooperr'],
+                'steps': [
+                  'heat oven',
+                  'eat the food'
+                ],
+                'private':'True',
+                'ingredients': [
+                    {
+                        'amount': 'tree-forty',
+                        'name': 'daneek',
+                        'unit': 'pounds'
+                    }
+                ]
                 }
-            ]
         }
         response = requests.put('http://localhost:5000/Recipe', json=to_update, headers=header)
         self.assertEqual(200, response.status_code)
@@ -503,7 +505,7 @@ class TestDataUpdating(unittest.TestCase):
                                        json={'login': 'testuser', 'password': 'somepassword'})
         access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        to_create = {'recipe':{
+        to_create = {'recipe': {
             'name': 'somenamehere',
             'tags': ['dankness', 'goodfood'],
             'steps': [
@@ -522,10 +524,11 @@ class TestDataUpdating(unittest.TestCase):
         }
         }
         response = requests.post('http://localhost:5000/Recipe', json=to_create, headers=header)
-        recipe_id = response.json().get('id')
         to_update = {
+            'recipe': {
             'name': 'somenamehere',
             'tags': ['dankness', 'goodfood', 'meepmoooperr'],
+            }
         }
         response = requests.put('http://localhost:5000/Recipe', json=to_update, headers=header)
         self.assertEqual(422, response.status_code)
