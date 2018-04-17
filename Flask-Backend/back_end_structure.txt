@@ -57,12 +57,14 @@ blacklist database structure (front end should never need to touch this)
 IMAGE STORAGE
 ------------------------------------------------------------------
 storage location for images is as follows:
-    /static/images/image.jpeg
+    /static/images/username/image.jpeg
     secure filenames will be automatically created.
     if the filename is already in use for the folder,
     an integer will be prepended to the beginning of the filename.
     the integer will start with 1 and continue to increase until a
      unique filename is found.
+    The first time a user uploads an image, their individual
+    folder will be created for them.
 
 -----------------------------------------------------------------------
 
