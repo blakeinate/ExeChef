@@ -1,0 +1,125 @@
+
+1. Homepage 
+  a. Description: Access to the ExeChef/CookBook home page.
+  b. Steps: 
+      i. Should have access to the ExeChef link (http://theexechef.com/)
+  c. Expected Result:
+      i. Should be greet to the CookBook home page with the options to log in/register, popular tags, view your feed/global feed.
+
+2. Login (Into Account)
+  a. Description: User log in to their CookBook recipe user profile.
+  b. Steps: 
+      i. Select login option on the home page
+      ii. Should be prompted a login/register window
+      iii. Enter correct username/password
+  c. Expected Result:
+       i. Should redirect to home page with user profile visible 
+       ii.If the username or email is incorrect, an error message will return
+
+3. Registration (Create Account)
+  a. Description: User registration of a new a user profile/account
+  b. Steps:
+      i. Select register option on the home page 
+      ii. Should be prompted a login/register window
+      iii. Create new username and password and enter valid email
+  c. Expected Result:
+      i. If the username, email has been used there will be an error message to provide a new username/email
+      ii. If one of the fields is not provided, the user will be prompted an error message to “The provided ___ is invalid”.
+      iii. If the user registers successfully, they will be redirected to the home page 
+
+4. Update User Profile
+  a. Description: Updating user profile components (bio, email, favorite, image or password)
+  b. Steps:
+      i. Select edit profile
+      ii. An editable page of the user profile will be presented
+  c. Expected Result:
+      i. You should be able to edit the bio, add a new email, create a new password by entering the old and new password, view your favorites and following.
+      ii. You should also be able to upload a profile picture.
+      iii. If the password does not match or if the provided passwords are invalid, a message will be given
+
+5. User Feed
+  a. Description: Retrieving following feed for the user containing only followed users recipes in the feed.
+  b. Steps:
+      i. Should be able to select Your Feed
+  c. Expected Result:
+      i. Should present a feed with the recipes the user follows from other users with profiles showing their recipes creation date, description, ingredients, modified date, name of recipe and ingredients.
+
+6. Global Feed
+  a. Description: Retrieving following feed for all user recipes that are set as public.
+  b. Steps:
+      i. Should be able to select Global Feed
+  c. Expected Result:
+      i. Should present a feed with the recipes the user from all user profiles that set their recipes as public showing user, their recipe creation date, description, ingredients, modified date, name of recipe and ingredients.
+
+7. Create a recipe
+  a. Description: Create a recipe on the CookBook site
+  b. Steps:
+      i. User should be logged in
+      ii. Select Create Recipe 
+      iii. Should be prompted a create recipe page with the following fields: name, tags, steps, description, private/public option, ingredients and the option to upload an image.
+  c. Expected Result:
+      i. The user should be able to successfully fill out the create recipe page
+      ii. If any of the required fields are not promptly filled, there will be an error message.
+      iii. Then a success message should be prompted after successful submission and user should be able to view the newly created recipe.
+
+8.Update a recipe 
+  a. Description: Update a recipe in the user profile
+  b. Steps:
+      i. User should be logged in
+      ii. View a recipe and select Update Recipe
+  c. Expected Result:
+      i. Should be prompted an editable page with the steps, description, private/public option, ingredients and image
+      ii. If the update not successful, an error message will be given
+
+9. Show single user recipe
+  a. Description: Return a single user recipe
+  b. Steps:
+      i. User should be able to search/view the recipes they have created
+  c. Expected Result:
+      i. Once the user selects a recipe to view, the user should be able to completely view all the details in their recipe and have the option to update/delete the recipe
+
+10. Show all user created recipes 
+  a. Description: Return all user recipes available 
+  b. Steps:
+      i. If the user wishes to view all their recipe details, select the option View All
+  c. Expected Result:
+      i. The should be able to view all their recipe details
+
+11. Show all user favorite recipes
+  a. Description: Return all user favorite recipes
+  b. Steps:
+      i. There should have Favorite tab available to select and edit
+  c. Expected Result:
+      i. The user should be able to select and view favorite recipes from other users. 
+      i. The user should be able to UN-favorite a recipe
+
+12. Delete a recipe
+  a. Description: Delete user recipe
+  b. Steps:
+      i. User can delete their own recipe, there will be an option when they view all their recipes
+  c. Expected Result:
+      i. User should be able to delete their recipe, there will be a validation message prior to deletion
+      ii. If the delete was unsuccessful there will be an error message
+      iii. If the user tries to delete another user’s recipe, there will be an error message
+
+13. Search recipe by tag
+  a. Description: Search recipes by associated tags
+  b. Steps:
+      i. User should be able to search a recipe based on popular tags, common tags, any tags they try to search
+  c. Expected Result:
+      i. The user should be able to successfully search for recipes based on tags 
+      ii. If the user searches tags available then they will prompted available recipes associated with the tag
+      iii. If there are no recipes associated with the tag then the user will be prompted to try again
+
+14. Log out 
+  a. Description: Log out of the user profile
+  b. Steps:
+      i. Select log out
+  c. Expected Result:
+      i. Should be logged out and prompted to the home page with the option to login/register
+
+
+
+
+
+
