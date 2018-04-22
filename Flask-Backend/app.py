@@ -32,6 +32,7 @@ jwt = JWTManager(app)
 client = PyMongo(app)
 #db = client['exechef']
 
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -385,10 +386,10 @@ class User(Resource):
             if isinstance(user_info.get('favorites'), (list,)):
                 for favorited_recipe in favorites:
                     if favorited_recipe not in user_info.get('favorites'):
-                        added_favorites.append({'_id': favorited_recipe})
+                        added_favorites.append({'_id': ObjectId(favorited_recipe)})
             else:
                 for favorited_recipe in favorites:
-                    added_favorites.append({'_id': favorited_recipe})
+                    added_favorites.append({'_id': ObjectId(favorited_recipe)})
 
             if added_favorites:
                 result = client.db.recipes.update_many({'$or': added_favorites}, {'$inc': {'favorited_count': 1}})
