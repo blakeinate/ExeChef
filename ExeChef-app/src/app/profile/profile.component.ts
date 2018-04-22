@@ -21,7 +21,6 @@ export class ProfileComponent implements OnInit {
     this.route.data.subscribe(
       (data) => {
         this.profile = data.profile.user;
-        console.log("The user profile we are looking at -->",this.profile);
         this.getCurrentUser();
 
       }
@@ -32,20 +31,12 @@ export class ProfileComponent implements OnInit {
     this.userService.currentUser.subscribe(
       (userData: User) => {
         this.currentUser = userData;
-
-        console.log("The current user that is logged in -->",this.currentUser.username);
-
-
-
         this.isUser = (this.currentUser.username === this.profile.username);
       }
     );
   }
   onToggleFollowing(following: boolean) {
-    //probbably dont need
-    console.log("its hitting");
-    this.profile.following = following;
-    console.log(this.profile);
+    this.profile.am_i_following = following;
   }
 
 }

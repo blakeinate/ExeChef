@@ -19,12 +19,13 @@ export class FollowButtonComponent {
 
   profile:Profile;
   @Input() set profileInput(profile: Profile){
-    console.log(profile);
+    console.log("coming from follow button",profile);
     this.profile = profile;
     this.userService.isAuthenticated.subscribe(
       (authenticated) =>{
         if(!authenticated){
-          profile.following = false;
+          console.log("not auth: viewing follow page");
+          profile.am_i_following = false;
         }
       }
     )
@@ -46,37 +47,14 @@ export class FollowButtonComponent {
 
 
 
-          this.userService.currentUser.subscribe(
-            (userData: User) => {
-              this.followingList = userData.followers;
-             console.log("follow list",this.followingList);
-             console.log("user we want to follow",this.profile.username);
-                // Follow this profile if we aren't already
-              if(!this.followingList.includes(this.profile.username)){
-                this.followingList.push(this.profile.username);
-                this.profilesService.follow(this.followingList)
-                .subscribe(
-                  data => {
-                    this.isSubmitting = false;
-                    this.onToggle.emit(true);
-                  },
-                  err => this.isSubmitting = false
-                );
-              }else{
-                  // Otherwise, unfollow this profile
-                this.followingList = userData.followers.filter(username => this.profile.username !== username);
-                //console.log("unfollow",this.followingList);
-                this.profilesService.follow(this.followingList)
-                .subscribe(
-                  data => {
-                    this.isSubmitting = false;
-                    this.onToggle.emit(false);
-                  },
-                  err => this.isSubmitting = false
-                );
-              }
-            }
-          );
+        this.profilesService.toggleFollowing(this.profile.username)
+        .subscribe(
+          data => {
+            this.isSubmitting = false;
+            this.onToggle.emit(data["emit"]);
+          },
+          err => this.isSubmitting = false
+        );
         }
     )
   }

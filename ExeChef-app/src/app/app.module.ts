@@ -3,6 +3,7 @@ import { NgModule, ModuleWithProviders } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HomeModule } from './home/home.module';
 import { ProfileModule } from './profile/profile.module';
+import {RecipeModule} from './recipe/recipe.module';
 import {EditorModule} from './editor/editor.module';
 import {AuthModule} from "./auth/auth.module";
 import { AppComponent } from './app.component';
@@ -33,6 +34,7 @@ const rootRouting: ModuleWithProviders = RouterModule.forRoot([], { useHash: tru
     EditorModule,
     HomeModule,
     ProfileModule,
+    RecipeModule,
     rootRouting,
     SharedModule,
     SettingsModule,

@@ -1,0 +1,101 @@
+<div class="recipe-page">
+
+  <div class="banner">
+    <div class="container">
+      <h1>{{ recipe.name }}</h1>
+      <recipe-meta [recipe]="recipe">
+          <span [hidden]="!canModify">
+          <a class="btn btn-sm btn-outline-secondary"
+             [routerLink]="['/editor', recipe._id]">
+            <i class="ion-edit"></i> Edit Recipe
+         </a>
+
+          <button class="btn btn-sm btn-outline-danger"
+            [ngClass]="{disabled: isDeleting}"
+            (click)="deleteRecipe()">
+            <i class="ion-trash-a"></i> Delete Recipe
+          </button>
+        </span>
+
+        <span [hidden]="canModify">
+          <follow-button
+            [profileInput]="recipe.author"
+            (onToggle)="onToggleFollowing($event)">
+          </follow-button>
+
+          <favorite-button
+            [recipe]="recipe"
+            (onToggle)="onToggleFavorite($event)">
+            {{ recipe.in_favorites ? 'Unfavorite' : 'Favorite' }} Recipe
+             <span class="counter">({{ recipe.favorited_count }})</span>
+          </favorite-button>
+        </span>
+
+      </recipe-meta>
+    </div>
+  </div>
+
+  <div class="container page">
+
+    <div class="row recipe-content">
+      <div class="col-md-12">
+
+
+        <ul class="tag-list">
+          <li *ngFor="let tag of recipe.tags"
+            class="tag-default tag-pill tag-outline">
+            {{ tag }}
+          </li>
+        </ul>
+
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="recipe-actions">
+      <recipe-meta [recipe]="recipe">
+
+          <span [hidden]="!canModify">
+          <a class="btn btn-sm btn-outline-secondary"
+             [routerLink]="['/editor', recipe.slug]">
+            <i class="ion-edit"></i> Edit Recipe
+          </a>
+
+          <button class="btn btn-sm btn-outline-danger"
+            [ngClass]="{disabled: isDeleting}"
+            (click)="deleteRecipe()">
+            <i class="ion-trash-a"></i> Delete Recipe
+          </button>
+        </span>
+
+        <span [hidden]="canModify">
+          <follow-button
+            [profileInput]="recipe.author"
+            (onToggle)="onToggleFollowing($event)">
+          </follow-button>
+
+          <favorite-button
+            [recipe]="recipe"
+            (onToggle)="onToggleFavorite($event)">
+            {{ recipe.in_favorites ? 'Unfavorite' : 'Favorite' }} Recipe
+             <span class="counter">({{ recipe.favorited_count }})</span>
+          </favorite-button>
+        </span>
+
+      </recipe-meta>
+
+    </div>
+
+    <div class="row">
+      <div class="col-xs-12 col-md-8 offset-md-2">
+
+        <div *showAuthed="false">
+          <a [routerLink]="['/login']">Sign in</a> or <a [routerLink]="['/register']">sign up</a> to add comments on this recipe.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

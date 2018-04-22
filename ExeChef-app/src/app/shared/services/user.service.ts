@@ -46,10 +46,34 @@ export class UserService {
                data.user.refresh_token = refresh_token;
                this.setAuth(data.user)
              },
-             err => this.purgeAuth()
+             err => {
+                this.purgeAuth()
+             }
            );
         },
         err => {
+            this.purgeAuth();
+            this.router.navigateByUrl('/login');
+
+        }
+      )
+    } else{
+      this.purgeAuth();
+    }
+  }
+
+  refresh(){
+    let access_token = this.jwtService.getToken();
+    let refresh_token = this.jwtService.getRefreshToken();
+    if(access_token){
+
+       this.apiService.postRefresh('/Refresh').subscribe(
+        data =>{
+           access_token = data.access_token;
+           this.jwtService.saveTokens(access_token,refresh_token);
+        },
+        err => {
+            this.purgeAuth();
             this.router.navigateByUrl('/login');
         }
       )
@@ -57,6 +81,7 @@ export class UserService {
       this.purgeAuth();
     }
   }
+
 
   setAuth(user: User) {
     //save tokens
@@ -88,6 +113,7 @@ export class UserService {
   getCurrentUser(): User {
     return this.currentUserSubject.value;
   }
+
 
   update(settings:Settings):Observable<User>{
     return this.apiService.put('/User',settings)

@@ -15,12 +15,15 @@ export class EditorComponent implements OnInit {
   //patch existing steps that might already exist
   //patch existing tags and steps that might exist from a pre existing article
   //FIX bug with duplicate slider movement
+  //cause of bug the fact that there is a single unitStep and unitMax var is whats causing the duplicate slider
+  //possibke fixes create an array of these
 
   recipe: Recipe = new Recipe();
   recipeForm: FormGroup;
   ingredients: FormGroup;
   tagField = new FormControl();
   stepField = new FormControl();
+  setUnit = new Unit();
   unitStep:number = 100;
   unitMax: number = 100;
   unitValue:number = 50;
@@ -203,6 +206,10 @@ export class EditorComponent implements OnInit {
   }
 
   ngOnInit() {
+      this.setUnit.step = 100;
+      this.setUnit.max = 100;
+      this.setUnit.value = 50;
+      this.setUnit.abrev = "";
     // If there's an recipe prefetched, load it
     this.route.data.subscribe(
       (data: {recipe: Recipe}) => {
@@ -270,9 +277,7 @@ export class EditorComponent implements OnInit {
   }
 
   submitForm() {
-    this.isSubmitting = true;
-    //console.log("This is the recipe object im sending",this.recipeForm.value);
-    // // update the model
+    // update the model
     this.updateRecipe(this.recipeForm.value);
     console.log("this is the recipe object that i am sending",this.recipe);
 
@@ -280,8 +285,10 @@ export class EditorComponent implements OnInit {
     this.recipesService
     .save(this.recipe)
     .subscribe(
-      //recipe => console.log(recipe),
-     recipe => this.router.navigateByUrl('/Recipe/' + recipe._id),
+    recipe =>{
+          let recipe_id = recipe._id.$oid;
+          return this.router.navigateByUrl('/recipe/'+recipe_id);
+        },
       err => {
         this.errors = err;
         this.isSubmitting = false;

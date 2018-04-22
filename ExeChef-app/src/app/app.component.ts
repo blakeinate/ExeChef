@@ -16,5 +16,18 @@ export class AppComponent implements OnInit {
 
   ngOnInit(){
     this.userService.populate();
+    this.userService.isAuthenticated.subscribe(isAuth => {
+      if(isAuth){
+        this.refresh();
+      }
+    });
+  }
+
+  refresh(){
+    setTimeout(()=>{
+      this.userService.refresh();
+      console.log("refreshing tokens");
+      this.refresh();
+    },600000)
   }
 }

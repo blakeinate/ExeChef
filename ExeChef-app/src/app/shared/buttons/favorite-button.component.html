@@ -1,0 +1,8 @@
+<button class="btn btn-sm"
+ [ngClass]="{ 'disabled' : isSubmitting,
+              'btn-outline-primary': !recipe.in_favorites,
+              'btn-primary': recipe.in_favorites }"
+ (click)="toggleFavorite()">
+  <i class="ion-heart"></i>
+  <ng-content></ng-content>
+</button>

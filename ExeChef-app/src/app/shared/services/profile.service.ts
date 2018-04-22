@@ -5,36 +5,44 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
 import { ApiService } from './api.service';
-import { Profile } from '../models';
+import { UserService} from './user.service';
+
+import { Profile,User } from '../models';
 
 @Injectable()
 export class ProfilesService {
   constructor (
-    private apiService: ApiService
+    private apiService: ApiService,
+    private userService: UserService,
   ) {}
 
   get(username: string): Observable<Profile> {
-    console.log("this is the user name we are getting ",username);
     return this.apiService.get('/User/' + username)
       .map((data) =>{
         console.log(data)
         return data;
       })
-      //.catch(this.formatErrors);
   }
 
-  follow(followList: string[]):Observable<Profile>{
-    return this.apiService.put("/User",{"following":followList});
-  }
 
-  // unfollow(username: string):Observable<Profile>{
-  //   return this.apiService.put("/User",{"unfollowed":username});
-  // }
+  toggleFollowing(username:string):Observable<User>{
+    let following = this.userService.getCurrentUser().following;
+    if(following == null){
+      following = [];
+    }
+    var emit = false;
+    if(!following.includes(username)){
+        following.push(username);
+        var emit = true;
 
+    }else{
 
-
-   formatErrors(error: Response) {
-     console.log(error);
-     return Observable.throw(error.json());
+      following = following.filter(removeUserName => username !== removeUserName);
+    }
+    return this.userService.update({following:following}).map(data=>{
+        //pass back a value for button to emit;
+        data["emit"] = emit;
+        return data;
+    })
   }
 }
