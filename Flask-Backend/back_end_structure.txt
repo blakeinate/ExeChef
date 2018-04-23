@@ -685,7 +685,7 @@ Alternate returns:
 ---------------------------------------------------------------
 
 get users created recipes
-A GET request to the /UserRecipes should be made.
+A GET request to the /Recipe/Created/<num_to_get> should be made.
 Returns: list of recipes in the following format:
   {
     'data':{
@@ -738,7 +738,7 @@ Alternate returns:
 ---------------------------------------------------------------
 
 get users favorite recipes
-A GET request to the /Favorites should be made.
+A GET request to the /Recipe/Favorites/<num_to_get> should be made.
 Returns: list of recipes in the following format:
   {
     'data':{
@@ -907,6 +907,7 @@ Alternate returns:
 
 retrieve recipes by tag
 A GET request to the /SearchTags/<tag_str> should be made.
+tags should be separated by '&'
 Returns: a list of recipes containing any of the searched tags in the following format:
 {
     'data':{

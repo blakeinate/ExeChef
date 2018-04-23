@@ -635,7 +635,6 @@ class Recipe(Resource):
         recipe = client.db.recipes.find_one({'_id': result.inserted_id})
         bson_to_json = dumps(recipe)
         true_json_data = json.loads(bson_to_json)
-        print true_json_data
         resp = jsonify({'recipe': true_json_data})
         resp.status_code = 201
         return resp

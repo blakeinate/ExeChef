@@ -697,6 +697,36 @@ class TestDataDeletion(unittest.TestCase):
         self.assertEqual(False, found)
 
 
+    def test_comment_deletion(self):
+        # test that retrieval of private recipes does not occur
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        recipe = {'recipe': {
+            'name': 'testrecipe',
+            'private': 'True',
+            'tags': [tag],
+            'ingredients': [
+                {'name': 'someingredient',
+                 'amount': '100', 'unit': 'pounds'}],
+            'steps': ['do cool stuff', 'do more stuff']}
+        }
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        response = requests.post('http://localhost:5000/Recipe', json=recipe, headers=header)
+        recipe_id = response.json().get('recipe').get('_id').get('$oid')
+        comment = {'comment': {'body': 'superdupercomment here'}}
+        response = requests.post('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments', json=comment, headers=header)
+        comment_id = response.json().get('comment').get('_id').get('$oid')
+        response = requests.get('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments')
+        length_old = len(response.json().get('comments'))
+        requests.delete('http://localhost:5000/Recipe/comments/'+str(comment_id), headers=header)
+        response = requests.get('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments')
+        length_new = len(response.json().get('comments'))
+        self.assertEqual(True, length_new < length_old)
+
 
 if __name__ == "__main__":
     unittest.main()
