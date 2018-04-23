@@ -425,7 +425,14 @@ Returns: if valid JWT, returns num_to_get public recipes that are most recent fr
         "do cool stuff",
         "do more cool stuff",
         "eat that shit"
-      ]
+      ],
+      "user": {
+          "_id": {
+            "$oid": "5ad00a0869438c029e5d3a4f"
+          },
+          "bio": "1SBDT1CEZE",
+          "username": "testuser"
+        }
     },
     {
       "_id": {
@@ -453,7 +460,14 @@ Returns: if valid JWT, returns num_to_get public recipes that are most recent fr
         "do cool stuff",
         "do more cool stuff",
         "eat that shit"
-      ]
+      ],
+      "user": {
+          "_id": {
+            "$oid": "5ad00a0869438c029e5d3a4f"
+          },
+          "bio": "1SBDT1CEZE",
+          "username": "testuser"
+        }
     }
   ]
 }
@@ -665,7 +679,14 @@ Returns: a recipe in the following format:
             "do more cool stuff",
             "eat that shit"
           ],
-          "in_favorites": True #will only show up if JWT provided
+          "in_favorites": True #will only show up if JWT provided,
+          "user": {
+              "_id": {
+                "$oid": "5ad00a0869438c029e5d3a4f"
+              },
+              "bio": "1SBDT1CEZE",
+              "username": "testuser"
+          }
         }
     }
   }
@@ -716,7 +737,15 @@ Returns: list of recipes in the following format:
               "do cool stuff",
               "do more cool stuff",
               "eat that shit"
-            ]
+            ],
+            "user": {
+              "_id": {
+                "$oid": "5ad00a0869438c029e5d3a4f"
+              },
+              "bio": "1SBDT1CEZE",
+              "username": "testuser"
+            }
+
           }
         ]
     }
@@ -770,6 +799,13 @@ Returns: list of recipes in the following format:
               "do more cool stuff",
               "eat that shit"
             ]
+            "user": {
+              "_id": {
+                "$oid": "5ad00a0869438c029e5d3a4f"
+              },
+              "bio": "1SBDT1CEZE",
+              "username": "testuser"
+            }
           }
         ]
     }
@@ -906,7 +942,7 @@ Alternate returns:
 
 
 retrieve recipes by tag
-A GET request to the /SearchTags/<tag_str> should be made.
+A GET request to the /SearchTags/<tag_str>/<num_to_get> should be made.
 tags should be separated by '&'
 Returns: a list of recipes containing any of the searched tags in the following format:
 {

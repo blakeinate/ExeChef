@@ -522,10 +522,19 @@ class Favorites(Resource):
                 created_list.append({'_id': ObjectId(recipe_id)})
         if created_list:
             recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+            recipes_with_user = []
+            for recipe in recipes:
+                username = recipe.get('author')
+                author = client.db.accounts.find_one({'username': username},
+                                                     {'password': 0, 'email': 0, 'following': 0,
+                                                      'followers': 0, 'created': 0, 'favorites': 0})
+                recipe_with_user = recipe
+                recipe_with_user['user'] = author
+                recipes_with_user.append(recipe_with_user)
         else:
-            recipes = []
+            recipes_with_user = []
 
-        bson_to_json = dumps(recipes)
+        bson_to_json = dumps(recipes_with_user)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes':true_json_data})
         resp.status_code = 200
@@ -547,9 +556,18 @@ class User_Recipes(Resource):
                 created_list.append({'_id': ObjectId(recipe_id)})
         if created_list:
             recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+            recipes_with_user = []
+            for recipe in recipes:
+                username = recipe.get('author')
+                author = client.db.accounts.find_one({'username': username},
+                                                     {'password': 0, 'email': 0, 'following': 0,
+                                                      'followers': 0, 'created': 0, 'favorites': 0})
+                recipe_with_user = recipe
+                recipe_with_user['user'] = author
+                recipes_with_user.append(recipe_with_user)
         else:
-            recipes = []
-        bson_to_json = dumps(recipes)
+            recipes_with_user = []
+        bson_to_json = dumps(recipes_with_user)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes':true_json_data})
         resp.status_code = 200
@@ -568,9 +586,28 @@ class Following_Feed(Resource):
                 for item in following:
                     following_list.append({'author': item})
                 recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+                recipes_with_user = []
+                for recipe in recent_recipes:
+                    username = recipe.get('author')
+                    author = client.db.accounts.find_one({'username': username},
+                                                         {'password': 0, 'email': 0, 'following': 0,
+                                                          'followers': 0, 'created': 0, 'favorites': 0})
+                    recipe_with_user = recipe
+                    recipe_with_user['user'] = author
+                    recipes_with_user.append(recipe_with_user)
         else:
             recent_recipes = client.db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
-        bson_to_json = dumps(recent_recipes)
+            recipes_with_user = []
+            for recipe in recent_recipes:
+                username = recipe.get('author')
+                author = client.db.accounts.find_one({'username': username},
+                                                     {'password': 0, 'email': 0, 'following': 0,
+                                                      'followers': 0, 'created': 0, 'favorites': 0})
+                recipe_with_user = recipe
+                recipe_with_user['user'] = author
+                recipes_with_user.append(recipe_with_user)
+
+        bson_to_json = dumps(recipes_with_user)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes': true_json_data})
         resp.status_code = 200
@@ -633,6 +670,10 @@ class Recipe(Resource):
 
         #return the new recipe
         recipe = client.db.recipes.find_one({'_id': result.inserted_id})
+        author = client.db.accounts.find_one({'username': _account_name},
+                                             {'password': 0, 'email': 0, 'following': 0,
+                                              'followers': 0, 'created': 0, 'favorites': 0})
+        recipe['user'] = author
         bson_to_json = dumps(recipe)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipe': true_json_data})
@@ -652,7 +693,9 @@ class Recipe(Resource):
         favorited = False
 
         if get_jwt_identity():
-            current_user = client.db.accounts.find_one({'username': str(get_jwt_identity())}, {'password': 0, 'email': 0})
+            current_user = client.db.accounts.find_one({'username': str(get_jwt_identity())},
+                                                 {'password': 0, 'email': 0, 'following': 0,
+                                                  'followers': 0, 'created': 0, 'favorites': 0})
             if isinstance(current_user.get('favorites'), (list,)):
                 if str(recipe_id) in current_user.get('favorites'):
                     favorited = True
@@ -664,7 +707,8 @@ class Recipe(Resource):
             else:
                 am_i_following = False
 
-        author = client.db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
+        author = client.db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0, 'following': 0,
+                                                  'followers': 0, 'created': 0, 'favorites': 0})
         cursor['user'] = author
         if get_jwt_identity():
             cursor['user']['am_i_following'] = am_i_following
@@ -848,11 +892,20 @@ class Comment(Resource):
 #search all recipe fields by a string, return recipes with found string
 #MAKE SURE THIS WORKS
 class Search_Tags(Resource):
-    def get(self, tag_str):
+    def get(self, tag_str, num_to_get = 10):
         #split string and remove non alphanumeric
         tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split('&')]
-        cursor = client.db.recipes.find({'$or': tag_list, 'private': 'False'})
-        bson_to_json = dumps(cursor)
+        recipes = client.db.recipes.find({'$or': tag_list, 'private': 'False'}).limit(num_to_get).sort('favorited_count', -1)
+        recipes_with_user = []
+        for recipe in recipes:
+            username = recipe.get('author')
+            author = client.db.accounts.find_one({'username': username},
+                                                 {'password': 0, 'email': 0, 'following': 0,
+                                                  'followers': 0, 'created': 0, 'favorites': 0})
+            recipe_with_user = recipe
+            recipe_with_user['user'] = author
+            recipes_with_user.append(recipe_with_user)
+        bson_to_json = dumps(recipes_with_user)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes': true_json_data})
         resp.status_code = 200
@@ -879,7 +932,7 @@ api.add_resource(User_Recipes, '/Recipe/Created/<num_to_get>', '/Recipe/Created'
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
 api.add_resource(Comment, '/Recipe/<recipe_id>/comments', '/Recipe/comments/<comment_id>')
-api.add_resource(Search_Tags, '/SearchTags/<tag_str>')
+api.add_resource(Search_Tags, '/SearchTags/<tag_str>/<num_to_get>', '/SearchTags/<tag_str>')
 
 
 @app.route('/')
