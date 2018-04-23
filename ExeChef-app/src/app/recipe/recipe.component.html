@@ -3,6 +3,7 @@
   <div class="banner">
     <div class="container">
       <h1>{{ recipe.name }}</h1>
+
       <recipe-meta [recipe]="recipe">
           <span [hidden]="!canModify">
           <a class="btn btn-sm btn-outline-secondary"
@@ -19,7 +20,7 @@
 
         <span [hidden]="canModify">
           <follow-button
-            [profileInput]="recipe.author"
+            [profileInput]="recipe.user"
             (onToggle)="onToggleFollowing($event)">
           </follow-button>
 
@@ -38,17 +39,37 @@
   <div class="container page">
 
     <div class="row recipe-content">
+      <img [src]="recipe.image_name" alt="A picture of {{recipe.name}}">
+      <h4>{{recipe.description}}</h4>
+
       <div class="col-md-12">
+        <ul class="step-list">
+          <li *ngFor="let steps of recipe.steps"
+            class="step">
+            {{ steps }}
+          </li>
+        </ul>
+      </div>
 
+      <div class="col-md-12">
+        <ul class="ingredients-list">
+          <li *ngFor="let ingredient of recipe.ingredients"
+            class="tag-default tag-pill tag-outline">
+            {{ ingredient.name }}, {{ ingredient.amount }}{{ingredient.unit}}{{ ingredient.amount>1?'s':''}}
 
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-12">
         <ul class="tag-list">
           <li *ngFor="let tag of recipe.tags"
             class="tag-default tag-pill tag-outline">
             {{ tag }}
           </li>
         </ul>
-
       </div>
+
     </div>
 
     <hr />
@@ -71,7 +92,7 @@
 
         <span [hidden]="canModify">
           <follow-button
-            [profileInput]="recipe.author"
+            [profileInput]="recipe.user"
             (onToggle)="onToggleFollowing($event)">
           </follow-button>
 
@@ -89,10 +110,36 @@
 
     <div class="row">
       <div class="col-xs-12 col-md-8 offset-md-2">
+       <div *showAuthed="true">
+          <list-errors [errors]="commentFormErrors"></list-errors>
+          <form class="card comment-form" (ngSubmit)="addComment()">
+            <fieldset [disabled]="isSubmitting">
+              <div class="card-block">
+                <textarea class="form-control"
+                  placeholder="Write a comment..."
+                  rows="3"
+                  [formControl]="commentControl"
+                ></textarea>
+              </div>
+              <div class="card-footer">
+                <img [src]="currentUser.image" class="comment-author-img" />
+                <button class="btn btn-sm btn-primary" type="submit">
+                 Post Comment
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
 
         <div *showAuthed="false">
           <a [routerLink]="['/login']">Sign in</a> or <a [routerLink]="['/register']">sign up</a> to add comments on this recipe.
         </div>
+
+        <recipe-comment
+          *ngFor="let comment of comments"
+          [comment]="comment"
+          (deleteComment)="onDeleteComment(comment)">
+        </recipe-comment>
 
       </div>
     </div>

@@ -19,7 +19,7 @@ export class EditableRecipeResolver implements Resolve<Recipe> {
 
     return this.recipesService.get(route.params['recipe_id'])
            .map( recipe => {
-               if (this.userService.getCurrentUser().username === recipe.author.username) {
+               if (this.userService.getCurrentUser().username === recipe.user.username) {
                  return recipe;
                } else {
                  this.router.navigateByUrl('/');

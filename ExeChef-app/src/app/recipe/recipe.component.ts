@@ -5,6 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   Recipe,
   RecipesService,
+  Comment,
+  CommentsService,
   User,
   UserService
 } from '../shared';
@@ -17,12 +19,16 @@ export class RecipeComponent implements OnInit {
   recipe: Recipe;
   currentUser: User;
   canModify: boolean;
+  comments: Comment[];
+  commentControl = new FormControl();
+  commentFormErrors = {};
   isSubmitting = false;
   isDeleting = false;
 
   constructor(
     private route: ActivatedRoute,
     private RecipesService: RecipesService,
+    private commentsService: CommentsService,
     private router: Router,
     private userService: UserService,
   ) { }
@@ -31,18 +37,16 @@ export class RecipeComponent implements OnInit {
     // Retreive the prefetched Recipe
     this.route.data.subscribe(
       (data: { recipe: Recipe }) => {
-        console.log(data.recipe);
         this.recipe = data.recipe;
+        this.populateComments();
       }
     );
-  
+
     // Load the current user's data
     this.userService.currentUser.subscribe(
       (userData: User) => {
         this.currentUser = userData;
-
-        console.log(this.currentUser.username+"vs" + this.recipe.author.username);
-        this.canModify = (this.currentUser.username === this.recipe.author.username);
+        this.canModify = (this.currentUser.username === this.recipe.author);
       }
     );
   }
@@ -57,7 +61,7 @@ export class RecipeComponent implements OnInit {
   }
 
   onToggleFollowing(following: boolean) {
-    this.recipe.author.am_i_following = following;
+    this.recipe.user.am_i_following = following;
   }
 
   deleteRecipe() {
@@ -66,6 +70,41 @@ export class RecipeComponent implements OnInit {
       .subscribe(
         success => {
           this.router.navigateByUrl('/');
+        }
+      );
+  }
+
+
+    populateComments() {
+    this.commentsService.getAll(this.recipe._id.$oid)
+      .subscribe(comments => this.comments = comments);
+  }
+
+  addComment() {
+    this.isSubmitting = true;
+    this.commentFormErrors = {};
+
+    let commentBody = this.commentControl.value;
+    this.commentsService
+      .add(this.recipe._id.$oid, commentBody)
+      .subscribe(
+        comment => {
+          this.comments.unshift(comment);
+          this.commentControl.reset('');
+          this.isSubmitting = false;
+        },
+        errors => {
+          this.isSubmitting = false;
+          this.commentFormErrors = errors;
+        }
+      );
+  }
+
+  onDeleteComment(comment) {
+    this.commentsService.destroy(comment.id, this.recipe._id.$oid)
+      .subscribe(
+        success => {
+          this.comments = this.comments.filter((item) => item !== comment);
         }
       );
   }

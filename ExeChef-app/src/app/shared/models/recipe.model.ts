@@ -7,7 +7,7 @@ export class Recipe{
     image_name: string;
     tags: Array<string> = [];
     steps : Array<string> = [];
-    author : Profile;
+    author : string;
     description : string;
     private : boolean;
     ingredients : Array<Ingredient> = [];
@@ -15,4 +15,5 @@ export class Recipe{
     modified_date :{ $date:string };
     in_favorites: boolean;
     favorited_count:number;
+    user: Profile;
 }

@@ -37,20 +37,19 @@ export class ApiService {
   }
 
   post(path: string, body: Object = {}): Observable<any> {
-    console.log(JSON.stringify(body));
     return this.http.post(`${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
         .catch(this.formatErrors)
         .map((res:Response) => res.json());
   }
 
   postRefresh(path: string, body: Object = {}): Observable<any> {
-    console.log(JSON.stringify(body));
     return this.http.post(`${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders(true) })
         .catch(this.formatErrors)
         .map((res:Response) => res.json());
   }
 
   get(path: string, params: URLSearchParams = new URLSearchParams()): Observable<any> {
+    console.log("whats the path ->",path);
    return this.http.get(`${environment.api_url}${path}`, { headers: this.setHeaders(), search: params })
     .catch(this.formatErrors)
     .map((res:Response) => res.json());

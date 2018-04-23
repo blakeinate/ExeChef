@@ -11,6 +11,7 @@ import { SettingsModule}from './settings/settings.module';
 import {
   ApiService,
   AuthGuard,
+  CommentsService,
   RecipesService,
   UserService,
   JwtService,
@@ -41,6 +42,7 @@ const rootRouting: ModuleWithProviders = RouterModule.forRoot([], { useHash: tru
   ],
   providers: [
     ApiService,
+    CommentsService,
     RecipesService,
     AuthGuard,
     UserService,

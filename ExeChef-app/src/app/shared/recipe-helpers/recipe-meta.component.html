@@ -1,12 +1,12 @@
 <div class="recipe-meta">
-  <a [routerLink]="['/profile', recipe.author.username]">
-    <img [src]="recipe.author.image" />
+  <a [routerLink]="['/profile', recipe.user.username]">
+    <img [src]="recipe.user.image" />
   </a>
 
   <div class="info">
     <a class="author"
-      [routerLink]="['/profile', recipe.author.username]">
-      {{ recipe.author.username }}
+      [routerLink]="['/profile', recipe.user.username]">
+      {{ recipe.user.username }}
     </a>
     <span class="date">
       {{ recipe.created_date.$date | date: 'longDate' }}

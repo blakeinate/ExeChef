@@ -1,3 +1,4 @@
+export * from './comment.model';
 export * from './errors.model';
 export * from './ingredient.model';
 export * from './profile.model';

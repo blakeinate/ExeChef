@@ -1,4 +1,5 @@
 export class User{
+  _id:{ $oid:string };
   username: string;
   password: string;
   email: string;
