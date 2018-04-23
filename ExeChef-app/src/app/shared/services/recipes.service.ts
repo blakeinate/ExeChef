@@ -77,7 +77,6 @@ export class RecipesService {
   toggleFavorite(recipe_id:string):Observable<User>{
      var favorites = this.userService.getCurrentUser().favorites;
      var emit = false;
-     //console.log(this.userService.getCurrentUser());
      console.log(recipe_id);
      if(favorites == null){
        favorites = [];

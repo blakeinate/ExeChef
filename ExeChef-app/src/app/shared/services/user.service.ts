@@ -115,10 +115,22 @@ export class UserService {
   }
 
 
-  update(settings:Settings):Observable<User>{
-    return this.apiService.put('/User',settings)
+  update(newSettings:Settings):Observable<User>{
+    //When updating user service there is a weird bug that nullifys following if you favorite and vise versa when you just put 1 of the settings
+    //as a temp fix I grab the last favorite value or the last following value and send them combined with the new verison of the other.
+    //this might be a backend related issue and will need to further investigate
+    let settings;
+    if(newSettings.following || newSettings.favorites){
+      settings = this.getCurrentUser();
+      Object.assign(settings,newSettings);
+      Object.assign(newSettings,{following:settings.following,favorites: settings.favorites})
+    }
+
+    console.log("what im sending",newSettings);
+    return this.apiService.put('/User',newSettings)
     .map(
       data =>{
+        console.log("update send back",data);
         this.currentUserSubject.next(data.user);
         return data.user;
       });

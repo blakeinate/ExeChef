@@ -51,7 +51,12 @@ export class RecipeComponent implements OnInit {
     );
   }
 
+  sayHello(e){
+    console.log("say hello",e);
+  }
+
   onToggleFavorite(favorited: boolean) {
+    console.log("favorite fire");
     this.recipe.in_favorites = favorited;
     if (favorited) {
       this.recipe.favorited_count++;
@@ -61,6 +66,8 @@ export class RecipeComponent implements OnInit {
   }
 
   onToggleFollowing(following: boolean) {
+    console.log("say following fire");
+
     this.recipe.user.am_i_following = following;
   }
 

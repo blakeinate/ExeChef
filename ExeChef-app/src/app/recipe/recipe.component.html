@@ -12,6 +12,7 @@
          </a>
 
           <button class="btn btn-sm btn-outline-danger"
+           (onToggle) = "sayHello($event)"
             [ngClass]="{disabled: isDeleting}"
             (click)="deleteRecipe()">
             <i class="ion-trash-a"></i> Delete Recipe
