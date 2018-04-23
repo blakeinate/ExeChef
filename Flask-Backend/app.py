@@ -655,9 +655,18 @@ class Recipe(Resource):
             if isinstance(current_user.get('favorites'), (list,)):
                 if str(recipe_id) in current_user.get('favorites'):
                     favorited = True
+            if isinstance((current_user.get('following')), (list,)):
+                if cursor.get('author') in current_user.get('following'):
+                    am_i_following = True
+                else:
+                    am_i_following = False
+            else:
+                am_i_following = False
 
         author = client.db.accounts.find_one({'username': str(cursor.get('author'))}, {'password': 0, 'email': 0})
         cursor['user'] = author
+        if get_jwt_identity():
+            cursor['user']['am_i_following'] = am_i_following
         cursor['in_favorites'] = favorited
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
@@ -759,6 +768,70 @@ class Recipe(Resource):
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
 
 
+class Comment(Resource):
+    @jwt_required
+    def post(self, recipe_id):
+        recipe_id = ObjectId(recipe_id)
+        json_data = request.get_json(force=True)
+        comment_text = str(json_data.get('comment').get('body'))
+        _account_name = get_jwt_identity()
+        if comment_text == None:
+            abort(422, message="No comment text provided.")
+
+        result = client.db.comments.insert_one(
+        {
+            'recipe_id': recipe_id,
+            'username': _account_name,
+            'created_date': datetime.now(),
+            'body': comment_text
+        })
+
+        if result.acknowledged:
+            return Response(status=200)
+        else:
+            abort(500, message='Unable to communicate with database and/or recipe modification failed.')
+
+
+    def get(self, recipe_id):
+        recipe_id = ObjectId(recipe_id)
+        comments = client.db.comments.find({'recipe_id': recipe_id}).sort('created_date.$date', -1)
+        comments_with_users = []
+        if comments:
+            for comment in comments:
+                username = comment.get('username')
+                author = client.db.accounts.find_one({'username': username}, {'password': 0, 'email': 0, 'following':0,
+                                                      'followers': 0, 'created': 0, 'favorites': 0})
+                comment_with_user = comment
+                comment_with_user['user'] = author
+                comments_with_users.append(comment_with_user)
+
+        bson_to_json = dumps(comments_with_users)
+        true_json_data = json.loads(bson_to_json)
+        resp = jsonify({'comments': true_json_data})
+        resp.status_code = 200
+        return resp
+
+    @jwt_required
+    def delete(self, comment_id):
+        comment_id = ObjectId(comment_id)
+        _account_name = get_jwt_identity()
+        comments = client.db.comments.find({'username': _account_name})
+        found = False
+        if comments:
+            for comment in comments:
+                if comment.get('_id') == comment_id:
+                    found = True
+                    break
+        if not found:
+            abort(403, message="Comment owned by another user or does not exist.")
+
+        result = client.db.comments.delete_one({'_id': comment_id})
+
+        if result.acknowledged:
+            return Response(status=200)
+        else:
+            abort(500, message='Unable to communicate with database and/or recipe modification failed.')
+
 
 
 #search all recipe fields by a string, return recipes with found string
@@ -794,6 +867,7 @@ api.add_resource(Favorites, '/Favorites')
 api.add_resource(User_Recipes, '/UserRecipes')
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
+api.add_resource(Comment, '/Recipe/<recipe_id>/comments', '/Recipe/comments/<comment_id>')
 api.add_resource(Search_Tags, '/SearchTags/<tag_str>')
 
 

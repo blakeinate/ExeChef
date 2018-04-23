@@ -48,6 +48,18 @@ recipes database structure
     "favorited_count": 10;
 }
 
+comments database structure
+{
+    "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+    }
+    'recipe_id': "5a80e397485b9265f90852db",
+    'username': "someaccountname",
+    'created_date': datetime,
+    'body': "this recipe is great!"
+}
+
+}
 blacklist database structure (front end should never need to touch this)
 {
     "token": "jwt_token_string"
@@ -777,8 +789,74 @@ Alternate returns:
     400, {'message':'No user found associated with provided access token.'}
 
 
+--------------------------------------------------------------
+
+add comment for a recipe
+A POST request to the /Recipe/<recipe_id>/comments should be made.
+Returns: 200
+Requires: JWT access token and following format to send comment
+  Header in the following format:
+    "Authorization: Bearer <token here>"
+
+{ 'comment':
+    {
+        'body': "this recipe is great!"
+    }
+}
+
+Alternate returns:
+    if no text in comment:
+        400, {'message'='No comment text provided.'}
+    if create was not successful:
+        500, {'message':'Unable to communicate with database and/or recipe modification failed.'}
 
 
+
+--------------------------------------------------------------
+
+get comments for a recipe
+A GET request to the /Recipe/<recipe_id>/comments should be made.
+Returns: comments in following format
+{'comments':
+    [{
+    "_id": {
+        "$oid": "5a80e397485b9265f90852db"
+    }
+    'recipe_id': "5a80e397485b9265f90852db",
+    'username': "someaccountname",
+    'created_date': datetime,
+    'body': "this recipe is great!"
+    'user': {
+      '_id': {
+        '$oid': '5a7cc9db485b921fc97aff9e'
+      },
+      'username': 'blakeb',
+      'image_name': 'someimage.jpeg'
+    }
+
+    }]
+}
+
+Requires: recipe_id passed in route
+
+
+
+--------------------------------------------------------------
+
+delete comment for a recipe
+A DELETE request to the /Recipe/comments/<comment_id> should be made.
+Returns: 200
+Requires: JWT access token and following format to send comment
+  Header in the following format:
+    "Authorization: Bearer <token here>"
+
+  Also requires a comment_id passed in route
+
+Alternate returns:
+    if comment not owned by user or doesn't exist:
+        403, {'message'='Comment owned by another user or does not exist.'}
+    if create was not successful:
+        500, {'message':'Unable to communicate with database and/or recipe modification failed.'}
 ---------------------------------------------------------------
 
 
