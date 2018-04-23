@@ -5,7 +5,9 @@ import random
 import app
 from flask_pymongo import PyMongo
 
-client = app.client
+#client = app.client
+app.app.config['MONGO2_DBNAME'] = 'unit_test_db'
+app.client = PyMongo(app.app, config_prefix='MONGO2')
 
 class TestCreationMethods(unittest.TestCase):
 
@@ -133,6 +135,53 @@ class TestCreationMethods(unittest.TestCase):
         response = requests.post('http://localhost:5000/Recipe', json=recipe, headers=header)
         self.assertEqual(response.status_code, 422)
 
+    def test_comment_creation_valid(self):
+        # test that retrieval of private recipes does not occur
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        recipe = {'recipe': {
+            'name': 'testrecipe',
+            'private': 'True',
+            'tags': [tag],
+            'ingredients': [
+                {'name': 'someingredient',
+                 'amount': '100', 'unit': 'pounds'}],
+            'steps': ['do cool stuff', 'do more stuff']}
+        }
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        response = requests.post('http://localhost:5000/Recipe', json=recipe, headers=header)
+        recipe_id = response.json().get('recipe').get('_id').get('$oid')
+        comment = {'comment': {'body': 'superdupercomment here'}}
+        response = requests.post('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments', json=comment, headers=header)
+        self.assertEqual(200, response.status_code)
+
+    def test_comment_creation_invalid_no_text(self):
+        # test that retrieval of private recipes does not occur
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        recipe = {'recipe': {
+            'name': 'testrecipe',
+            'private': 'True',
+            'tags': [tag],
+            'ingredients': [
+                {'name': 'someingredient',
+                 'amount': '100', 'unit': 'pounds'}],
+            'steps': ['do cool stuff', 'do more stuff']}
+        }
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        response = requests.post('http://localhost:5000/Recipe', json=recipe, headers=header)
+        recipe_id = response.json().get('recipe').get('_id').get('$oid')
+        comment = {'comment': {'body': ''}}
+        response = requests.post('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments', json=comment, headers=header)
+        self.assertEqual(422, response.status_code)
 
 class TestDataAccess(unittest.TestCase):
     def test_current_user_retrieval(self):
@@ -228,7 +277,7 @@ class TestDataAccess(unittest.TestCase):
                                        json={'login': 'testuser', 'password': 'somepassword'})
         access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        response = requests.get('http://localhost:5000/Favorites', headers=header)
+        response = requests.get('http://localhost:5000/Recipe/Favorites', headers=header)
         self.assertEqual(response.status_code, 200)
 
     def test_recipe_retrieval_by_user_created(self):
@@ -239,7 +288,7 @@ class TestDataAccess(unittest.TestCase):
                                        json={'login': 'testuser', 'password': 'somepassword'})
         access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        response = requests.get('http://localhost:5000/UserRecipes', headers=header)
+        response = requests.get('http://localhost:5000/Recipe/Created', headers=header)
         self.assertEqual(response.status_code, 200)
 
     def test_recipe_retrieval_by_tags(self):
@@ -290,6 +339,33 @@ class TestDataAccess(unittest.TestCase):
         response = requests.get('http://localhost:5000/SearchTags/'+tag)
         check_empty = response.json().get('recipes')
         self.assertEqual(0, len(check_empty))
+
+    def test_comment_retrieval(self):
+        # test that retrieval of private recipes does not occur
+        requests.post('http://localhost:5000/User',
+                      json={'username': 'testuser', 'password': 'somepassword', 'email': 'testuser@gmail.com'})
+        login_response = requests.post('http://localhost:5000/Login',
+                                       json={'login': 'testuser', 'password': 'somepassword'})
+        access_token = login_response.json().get('user').get('access_token')
+        tag = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        recipe = {'recipe': {
+            'name': 'testrecipe',
+            'private': 'True',
+            'tags': [tag],
+            'ingredients': [
+                {'name': 'someingredient',
+                 'amount': '100', 'unit': 'pounds'}],
+            'steps': ['do cool stuff', 'do more stuff']}
+        }
+        header = {'Authorization': 'Bearer ' + str(access_token)}
+        response = requests.post('http://localhost:5000/Recipe', json=recipe, headers=header)
+        recipe_id = response.json().get('recipe').get('_id').get('$oid')
+        comment = {'comment': {'body': 'superdupercomment here'}}
+        requests.post('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments', json=comment, headers=header)
+        response = requests.get('http://localhost:5000/Recipe/' + str(recipe_id) + '/comments')
+        length = len(response.json().get('comments'))
+        self.assertEqual(True, length > 0)
+
 
 class TestDataUpdating(unittest.TestCase):
     def test_user_update_bio_email_valid_info(self):

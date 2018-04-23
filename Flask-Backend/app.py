@@ -509,19 +509,21 @@ class Logout2(Resource):
 #returns list of recipes from user's favorites list
 class Favorites(Resource):
     @jwt_required
-    def get(self):
+    def get(self, num_to_get = 10):
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
         cursor = client.db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
-        recipes = []
+
+        created_list = []
         if isinstance(cursor.get('favorites'), (list,)):
             for recipe_id in cursor.get('favorites'):
-                recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
-                if recipe_cursor == None:
-                    continue
-                recipes.append(recipe_cursor)
+                created_list.append({'_id': ObjectId(recipe_id)})
+        if created_list:
+            recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+        else:
+            recipes = []
 
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
@@ -533,20 +535,20 @@ class Favorites(Resource):
 #returns list of recipes created by the current user from their created list
 class User_Recipes(Resource):
     @jwt_required
-    def get(self):
+    def get(self, num_to_get = 10):
         _account_name = get_jwt_identity()
         #return list of recipes from user {'userFavorites': []}
         cursor = client.db.accounts.find_one({'username': str(_account_name)})
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
-        recipes = []
+        created_list = []
         if isinstance(cursor.get('created'), (list,)):
             for recipe_id in cursor.get('created'):
-                recipe_cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
-                if recipe_cursor == None:
-                    continue
-                recipes.append(recipe_cursor)
-
+                created_list.append({'_id': ObjectId(recipe_id)})
+        if created_list:
+            recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+        else:
+            recipes = []
         bson_to_json = dumps(recipes)
         true_json_data = json.loads(bson_to_json)
         resp = jsonify({'recipes':true_json_data})
@@ -775,7 +777,7 @@ class Comment(Resource):
         json_data = request.get_json(force=True)
         comment_text = str(json_data.get('comment').get('body'))
         _account_name = get_jwt_identity()
-        if comment_text == None:
+        if comment_text == None or comment_text == '':
             abort(422, message="No comment text provided.")
         created_date = datetime.now()
         result = client.db.comments.insert_one(
@@ -873,8 +875,8 @@ api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User/<username>', '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
-api.add_resource(Favorites, '/Favorites')
-api.add_resource(User_Recipes, '/UserRecipes')
+api.add_resource(Favorites, '/Recipe/Favorites/<num_to_get>', '/Recipe/Favorites')
+api.add_resource(User_Recipes, '/Recipe/Created/<num_to_get>', '/Recipe/Created')
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
 api.add_resource(Comment, '/Recipe/<recipe_id>/comments', '/Recipe/comments/<comment_id>')
