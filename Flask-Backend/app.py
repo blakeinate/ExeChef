@@ -851,7 +851,7 @@ class Comment(Resource):
 class Search_Tags(Resource):
     def get(self, tag_str):
         #split string and remove non alphanumeric
-        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split(',')]
+        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split('&')]
         cursor = client.db.recipes.find({'$or': tag_list, 'private': 'False'})
         bson_to_json = dumps(cursor)
         true_json_data = json.loads(bson_to_json)
