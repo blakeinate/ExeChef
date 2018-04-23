@@ -793,16 +793,35 @@ Alternate returns:
 
 add comment for a recipe
 A POST request to the /Recipe/<recipe_id>/comments should be made.
-Returns: 200
+Returns: Status code 200 and
+{'comment':
+    {
+
+    }
+}
 Requires: JWT access token and following format to send comment
   Header in the following format:
     "Authorization: Bearer <token here>"
 
 { 'comment':
     {
+        "_id": {
+            "$oid": "5a80e397485b9265f90852db"
+        }
+        'recipe_id': "5a80e397485b9265f90852db",
+        'username': "someaccountname",
+        'created_date': datetime,
         'body': "this recipe is great!"
+        'user': {
+          '_id': {
+            '$oid': '5a7cc9db485b921fc97aff9e'
+          },
+          'username': 'blakeb',
+          'image_name': 'someimage.jpeg'
+        }
     }
 }
+
 
 Alternate returns:
     if no text in comment:

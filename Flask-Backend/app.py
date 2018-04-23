@@ -777,17 +777,27 @@ class Comment(Resource):
         _account_name = get_jwt_identity()
         if comment_text == None:
             abort(422, message="No comment text provided.")
-
+        created_date = datetime.now()
         result = client.db.comments.insert_one(
         {
             'recipe_id': recipe_id,
             'username': _account_name,
-            'created_date': datetime.now(),
+            'created_date': created_date,
             'body': comment_text
         })
 
         if result.acknowledged:
-            return Response(status=200)
+            comment = client.db.comments.find_one({'username': _account_name, 'created_date': created_date})
+            username = comment.get('username')
+            author = client.db.accounts.find_one({'username': username}, {'password': 0, 'email': 0, 'following': 0,
+                                                                          'followers': 0, 'created': 0, 'favorites': 0})
+            comment_with_user = comment
+            comment_with_user['user'] = author
+            bson_to_json = dumps(comment_with_user)
+            true_json_data = json.loads(bson_to_json)
+            resp = jsonify({'comment': true_json_data})
+            resp.status_code = 200
+            return resp
         else:
             abort(500, message='Unable to communicate with database and/or recipe modification failed.')
 
