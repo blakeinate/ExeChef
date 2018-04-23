@@ -13,10 +13,10 @@
       {{ comment.user.username }}
     </a>
     <span class="date-posted">
-      {{ comment.created_date | date: 'longDate' }}
+      {{ comment.created_date.$date | date: 'longDate' }}
     </span>
     <span class="mod-options" [hidden]="!canModify">
-      <i class="ion-trash-a" (click)="deleteClicked()"></i>
+      <i class="ion-trash-a" (click)="deleteClicked()">delete</i>
     </span>
   </div>
 </div>

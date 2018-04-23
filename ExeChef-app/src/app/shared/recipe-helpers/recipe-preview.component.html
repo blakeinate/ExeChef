@@ -1,0 +1,22 @@
+<div class="recipe-preview">
+  <recipe-meta [recipe]="recipe">
+    <favorite-button
+      [recipe]="recipe"
+      (onToggle)="onToggleFavorite($event)"
+      class="pull-xs-right">
+      {{recipe.favorited_count}}
+    </favorite-button>
+  </recipe-meta>
+
+  <a [routerLink]="['/recipe', recipe._id.$oid]" class="preview-link">
+    <h1>{{ recipe.name }}</h1>
+    <p>{{ recipe.description }}</p>
+    <span>Read more...</span>
+    <ul class="tag-list">
+      <li class="tag-default tag-pill tag-outline"
+        *ngFor="let tag of recipe.tags">
+        {{ tag }}
+      </li>
+    </ul>
+  </a>
+</div>

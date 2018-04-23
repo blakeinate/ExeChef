@@ -61,6 +61,19 @@ export class ApiService {
     .map((res:Response) => res.json());
   }
 
+
+  //For instances where you are logged in but want to get response from a route without token
+  getWithoutToken(path: string, params: URLSearchParams = new URLSearchParams()): Observable<any> {
+   return this.http.get(`${environment.api_url}${path}`, { headers: new Headers(
+     {
+       'Content-Type': 'application/json',
+       'Accept': 'application/json',
+     }
+   ), search: params })
+    .catch(this.formatErrors)
+    .map((res:Response) => res.json());
+  }
+
   put(path: string, body: Object = {}): Observable<any> {
     return this.http.put( `${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
         .catch(this.formatErrors)
@@ -70,7 +83,7 @@ export class ApiService {
   delete(path): Observable<any> {
    return this.http.delete(`${environment.api_url}${path}`, { headers: this.setHeaders() })
     .catch(this.formatErrors)
-    .map((res:Response) => res.json());
+    //.map((res:Response) => res.json());
   }
 
 

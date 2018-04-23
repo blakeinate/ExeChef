@@ -101,9 +101,11 @@ export class RecipeComponent implements OnInit {
   }
 
   onDeleteComment(comment) {
-    this.commentsService.destroy(comment.id, this.recipe._id.$oid)
+    //console.log("the ID for comment",comment._id.$oid);
+    this.commentsService.destroy(comment._id.$oid)
       .subscribe(
         success => {
+          console.log("not reaching");
           this.comments = this.comments.filter((item) => item !== comment);
         }
       );

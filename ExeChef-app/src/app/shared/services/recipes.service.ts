@@ -6,7 +6,7 @@ import 'rxjs/add/operator/catch';
 
 import { ApiService} from './api.service';
 import { UserService} from './user.service';
-import { Recipe, User } from '../models';
+import { Recipe, User,RecipeListConfig } from '../models';
 
 @Injectable()
 export class RecipesService {
@@ -14,6 +14,42 @@ export class RecipesService {
     private apiService: ApiService,
     private userService: UserService,
   ) {}
+
+  /**
+  * type field will take a type of option
+  * global- will to get the global feed ( all recipes)
+  * user - wiill be to get the users feed based on people he follows
+  * created - will be to get users recipes that he created
+  * favorites - will be to get the users recipes that he favorited
+  * tag - will to get recipes with matching tags
+  * limit field will be a limt to the amount a user wants from the request default is 10 if no limit is provided
+  * query feild will apply for searchs
+  *
+  */
+  query(config:RecipeListConfig): Observable<Recipe[]>{
+        let request;
+        if(config.type == "global"){
+          request = config.limit != 10? `/Feed/${config.limit}`: `/Feed` ;
+          return this.apiService.getWithoutToken(request)
+          .map(data => data.recipes);
+        }
+        else if(config.type === "user"){
+          request = config.limit != 10? `/Feed/${config.limit}`: `/Feed`;
+        }
+        else if (config.type === "created"){
+          request = config.limit != 10? `/Recipe/Created/${config.limit}`: `/Recipe/Created` ;
+        }
+        else if( config.type === "favorites"){
+          request = config.limit != 10? `/Recipe/Favorites/${config.limit}`: `/Recipe/Favorites` ;
+        }
+        else if(config.type === "tag"){
+          request = config.limit != 10? `/SearchTags/${config.query}/${config.limit}`: `/SearchTags/${config.query}` ;
+        }
+        if(config.type !== "global"){
+          return this.apiService.get(request)
+          .map(data => data.recipes);
+        }
+  }
 
   get(recipe_id:string): Observable<Recipe> {
     return this.apiService.get('/Recipe/' + recipe_id)

@@ -3,7 +3,8 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
-import { RecipeMetaComponent } from './recipe-helpers';
+import { RecipeMetaComponent,RecipeListComponent,RecipePreviewComponent } from './recipe-helpers';
+
 import { FavoriteButtonComponent, FollowButtonComponent } from './buttons';
 
 import {ListErrorsComponent} from './errorList';
@@ -18,14 +19,18 @@ import {ShowAuthedDirective} from './show-authed.directive';
     RouterModule
   ],
   declarations: [
+    RecipeListComponent,
     RecipeMetaComponent,
+    RecipePreviewComponent,
     FavoriteButtonComponent,
     FollowButtonComponent,
     ListErrorsComponent,
     ShowAuthedDirective
   ],
   exports: [
+    RecipeListComponent,
     RecipeMetaComponent,
+    RecipePreviewComponent,
     CommonModule,
     FavoriteButtonComponent,
     FollowButtonComponent,

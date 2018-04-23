@@ -1,0 +1,31 @@
+<recipe-preview
+  *ngFor="let recipe of results"
+  [recipe]="recipe">
+</recipe-preview>
+
+<div class="recipe-preview"
+  [hidden]="!loading">
+  Loading recipes...
+</div>
+
+<div class="recipe-preview"
+  [hidden]="loading || results.length">
+  No recipes are here... yet.
+</div>
+
+
+<!-- Will implement later if we get pagination -->
+<!-- <nav [hidden]="loading || totalPages <= 1">
+  <ul class="pagination">
+
+    <li class="page-item"
+      [ngClass]="{'active': pageNumber === currentPage}"
+      *ngFor="let pageNumber of totalPages"
+      (click)="setPageTo(pageNumber)">
+
+      <a class="page-link" href="#">{{ pageNumber }}</a>
+
+    </li>
+
+  </ul>
+</nav> -->

@@ -31,17 +31,24 @@
         <div class="articles-toggle">
           <ul class="nav nav-pills outline-active">
             <li class="nav-item">
-              <a class="nav-link">
+              <a class="nav-link"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{ exact: true }"
+                 [routerLink]="['/profile', profile.username,'created']">
                  My Recipes
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link">
+              <a class="nav-link"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{ exact: true }"
+                 [routerLink]="['/profile', profile.username,'favorites']">
                  Favorited Recipes
               </a>
             </li>
           </ul>
         </div>
+        <router-outlet></router-outlet>
 
       </div>
 

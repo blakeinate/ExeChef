@@ -14,8 +14,11 @@ export class CommentsService {
   ) {}
 
   add(recipe_id, payload): Observable<Comment> {
+
     return this.apiService.post(`/Recipe/${recipe_id}/comments`, { comment: { body: payload } })
-     .map(data => data.comment);
+     .map(data =>{
+       return data.comment
+     } );
   }
 
   getAll(recipe_id): Observable<Comment[]> {
@@ -23,8 +26,8 @@ export class CommentsService {
      .map(data => data.comments);
   }
 
-  destroy(comment_id, recipe_id) {
-    return this.apiService.delete(`/Recipe/${recipe_id}/comments/${comment_id}`);
+  destroy(comment_id) {
+    return this.apiService.delete(`/Recipe/comments/${comment_id}`);
   }
 
 }
