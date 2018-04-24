@@ -504,6 +504,7 @@ class Favorites(Resource):
     @jwt_optional
     def get(self, username= None, num_to_get = 10):
         _account_name = get_jwt_identity()
+        num_to_get = int(num_to_get)
         if username:
             #return list of recipes from user {'userFavorites': []}
             cursor = client.db.accounts.find_one({'username': str(username)})
@@ -565,6 +566,7 @@ class User_Recipes(Resource):
     @jwt_optional
     def get(self, username = None, num_to_get = 10):
         _account_name = get_jwt_identity()
+        num_to_get = int(num_to_get)
         if username:
             cursor = client.db.accounts.find_one({'username': str(username)})
             if cursor == None:
@@ -940,6 +942,7 @@ class Comment(Resource):
 #MAKE SURE THIS WORKS
 class Search_Tags(Resource):
     def get(self, tag_str, num_to_get = 10):
+        num_to_get = int(num_to_get)
         #split string and remove non alphanumeric
         tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE), 'private': False} for string in tag_str.split('&')]
         recipes = client.db.recipes.find({'$or': tag_list}).limit(num_to_get).sort('favorited_count', -1)
