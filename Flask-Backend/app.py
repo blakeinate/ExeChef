@@ -17,7 +17,7 @@ import os.path
 from werkzeug.utils import secure_filename
 import base64
 
-UPLOAD_FOLDER = './static/images/'
+UPLOAD_FOLDER = '../ExeChef-app/src/assets/images/'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
