@@ -41,17 +41,23 @@ export class HomeComponent implements OnInit {
     //   this.tagsLoaded = true;
     // });
   }
+  onEnter(search){
+    this.setListTo("tag",search);
+  }
 
-  setListTo(type: string = '') {
+  setListTo(type: string = '',tag:string ="") {
+    this.listConfig = new RecipeListConfig();
 
     // If feed is requested but user is not authenticated, redirect to login
     if (type === 'feed' && !this.isAuthenticated) {
       this.router.navigateByUrl('/login');
       return;
     }
+    if(type === 'tag'){
+      this.listConfig.query = tag;
+    }
     console.log('setting to ',type);
     // Otherwise, set the list object
-    this.listConfig = new RecipeListConfig();
     this.listConfig.type =type;
   }
  }

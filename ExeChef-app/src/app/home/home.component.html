@@ -1,6 +1,6 @@
 <div class="home-page">
 
-  <div class="banner" *showAuthed="false">
+  <div class="banner banner-home" *showAuthed="false">
     <div class="container">
       <h1 class="logo-font">CookBook</h1>
       <p>A place to share your <i>Recipies</i></p>
@@ -45,9 +45,7 @@
 
       <div class="col-md-3">
         <div class="sidebar">
-          <p>Popular Tags</p>
-
-
+          <input type="text"placeholder="search"#search (keyup.enter)="onEnter(search.value)">
         </div>
       </div>
 

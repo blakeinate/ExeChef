@@ -54,9 +54,17 @@ recipe-list{
   font-weight: bold;
 }
 .nav-link-df{
+  cursor: pointer;
   margin-right: 1rem;
+  background: transparent;
+  color: black;
+  font-weight: bold;
 }
 .active-df{
+  margin-right: 1rem;
+  background: transparent;
+  color: black;
+  font-weight: bold;
   border-bottom: 1px solid black;
 }
 .navbar-brand , .logo-font{
@@ -72,6 +80,13 @@ width: 100px;
 height: 100px;
 border-radius: 100px;
 margin-bottom: 1rem;
+}
+.banner-home{
+  height: 400px;
+  background-color: none;
+  background: url("../assets/images/homescreen/home_picture.jpg") !important;
+  background-size: cover !important;
+
 }
 
 .recipe-meta{
