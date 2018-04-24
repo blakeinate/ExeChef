@@ -110,6 +110,7 @@ def remove_old_image(filename, username):
 
 def handle_recipe_image(recipe_image, username, recipe_id=None):
     # upload image for recipe
+    image_filename = None
     if recipe_image:
         image_filename = upload_image(recipe_image, username)
     if image_filename:
@@ -124,7 +125,7 @@ def handle_recipe_image(recipe_image, username, recipe_id=None):
 
 def handle_user_image(user_image, username):
     # upload image for recipe
-
+    image_filename = None
     if user_image:
         image_filename = upload_image(user_image, username)
     if image_filename:
@@ -134,7 +135,6 @@ def handle_user_image(user_image, username):
                 remove_old_image(user.get('image_name'), username)
         return image_filename
     else:
-        print "could not find the image"
         return None
 
 class Users(Resource):
