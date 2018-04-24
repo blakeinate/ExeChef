@@ -108,7 +108,7 @@ def remove_old_image(filename, username):
 def handle_recipe_image(recipe_request, username, recipe_id=None):
     # upload image for recipe
     image = None;
-    if 'file' in recipe_request.files:
+    if 'image' in recipe_request.files:
         image = recipe_request.files['image']
         if image.filename == '':
             image = None
@@ -129,7 +129,7 @@ def handle_recipe_image(recipe_request, username, recipe_id=None):
 def handle_user_image(user_request, username):
     # upload image for recipe
     image = None;
-    if 'file' in user_request.files:
+    if 'image' in user_request.files:
         image = user_request.files['image']
         if image.filename == '':
             image = None
