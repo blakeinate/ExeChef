@@ -11,7 +11,9 @@
           <fieldset [disabled]="isSubmitting">
 
             <fieldset class="form-group">
+              <img [hidden] ="!hasImage" src='data:image/jpeg;base64,{{b64}}' />
               <input class="form-control"
+                accept="image/*"
                 type="file"
                 id="avatar"
                 (change)="onFileChange($event)"

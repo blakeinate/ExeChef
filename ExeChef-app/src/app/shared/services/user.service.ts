@@ -126,7 +126,6 @@ export class UserService {
       Object.assign(newSettings,{following:settings.following,favorites: settings.favorites})
     }
 
-    console.log("what im sending",newSettings);
     return this.apiService.put('/User',newSettings)
     .map(
       data =>{
@@ -134,18 +133,6 @@ export class UserService {
         this.currentUserSubject.next(data.user);
         return data.user;
       });
-  }
-
-  updateImage(imgForm):Observable<User>{
-    console.log("sending->",imgForm.get('uploadFile'));
-    return this.apiService.putImage('/User',imgForm)
-    .map(
-      data =>{
-        console.log("update image send back",data);
-
-        return data.user;
-      }
-    )
   }
 
 }
