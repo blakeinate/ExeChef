@@ -130,6 +130,7 @@ def handle_user_image(user_request, username):
     # upload image for recipe
     image = None;
     if 'image' in user_request.files:
+        print "successfully see image"
         image = user_request.files['image']
         if image.filename == '':
             image = None
@@ -144,6 +145,7 @@ def handle_user_image(user_request, username):
                 remove_old_image(user.get('image_name'), username)
         return image_filename
     else:
+        print "could not find the image"
         return None
 
 class Users(Resource):
