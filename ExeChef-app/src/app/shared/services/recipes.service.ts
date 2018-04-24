@@ -29,8 +29,7 @@ export class RecipesService {
   query(config:RecipeListConfig): Observable<Recipe[]>{
         let request;
         if(config.type == "global"){
-          //request = config.limit != 10? `/Feed/${config.limit}`: `/Feed` ;
-          request =`/Recipes`
+          request = config.limit != 10? `/Feed/${config.limit}`: `/Feed` ;
           return this.apiService.getWithoutToken(request)
           .map(data => data.recipes);
         }
@@ -39,14 +38,13 @@ export class RecipesService {
           request = config.limit != 10? `/Feed/${config.limit}`: `/Feed`;
         }
         else if (config.type === "created"){
-          request = config.limit != 10? `/Recipe/Created/${config.limit}`: `/Recipe/Created` ;
-
-          //request = config.limit != 10? `/Recipe/Created/${config.limit}/${config.profile_name}`: `/Recipe/Created/${config.profile_name}` ;
+          //request = config.limit != 10? `/Recipe/Created/${config.limit}`: `/Recipe/Created` ;
+          request = config.limit != 10? `/Recipe/Created/${config.profile_name}/${config.limit}`: `/Recipe/Created/${config.profile_name}` ;
         }
         else if( config.type === "favorites"){
-          request = config.limit != 10? `/Recipe/Favorites/${config.limit}`: `/Recipe/Favorites` ;
+          //request = config.limit != 10? `/Recipe/Favorites/${config.limit}`: `/Recipe/Favorites` ;
 
-          //request = config.limit != 10? `/Recipe/Favorites/${config.limit}/${config.profile_name}`: `/Recipe/Favorites/${config.profile_name}` ;
+          request = config.limit != 10? `/Recipe/Favorites/${config.profile_name}/${config.limit}`: `/Recipe/Favorites/${config.profile_name}`;
         }
         else if(config.type === "tag"){
           request = config.limit != 10? `/SearchTags/${config.query}/${config.limit}`: `/SearchTags/${config.query}` ;

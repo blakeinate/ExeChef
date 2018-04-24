@@ -16,8 +16,8 @@
             <li class="nav-item"
               [hidden] = "!isAuthenticated">
 
-              <a class="nav-link"
-                 [ngClass]="{'active': listConfig.type === 'user'}"
+              <a class="nav-link-df"
+                 [ngClass]="{'active-df': listConfig.type === 'user'}"
                  (click)="setListTo('user')">
                  Your Feed
               </a>
@@ -26,8 +26,8 @@
               <!-- OTHER VERSION <a class="nav-link"
                 [ngClass]="{'active': listConfig.type === 'global' && !listConfig.filters.tag}"
                 (click)="setListTo('global')">  -->
-              <a class="nav-link"
-                [ngClass]="{'active': listConfig.type === 'global'}"
+              <a class="nav-link-df"
+                [ngClass]="{'active-df': listConfig.type === 'global'}"
                 (click)="setListTo('global')">
                 Global Feed
               </a>

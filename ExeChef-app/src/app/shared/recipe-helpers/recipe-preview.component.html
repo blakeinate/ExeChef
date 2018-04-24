@@ -1,22 +1,28 @@
-<div class="recipe-preview">
-  <recipe-meta [recipe]="recipe">
-    <favorite-button
-      [recipe]="recipe"
-      (onToggle)="onToggleFavorite($event)"
-      class="pull-xs-right">
-      {{recipe.favorited_count}}
-    </favorite-button>
-  </recipe-meta>
+<div class="recipe-preview card">
 
-  <a [routerLink]="['/recipe', recipe._id.$oid]" class="preview-link">
+<img [hidden]="!recipe.image_name" class = "card-img-top" src="../../../assets/images/{{recipe.user.username}}/{{recipe.image_name}}" alt="A picture of {{recipe.name}}">
+<div class="card-body">
+
+ <a [routerLink]="['/recipe', recipe._id.$oid]" class="preview-link">
     <h1>{{ recipe.name }}</h1>
+
+    <recipe-meta [recipe]="recipe">
+      <favorite-button
+        [recipe]="recipe"
+        (onToggle)="onToggleFavorite($event)"
+        class="pull-xs-right">
+        {{recipe.favorited_count}}
+      </favorite-button>
+    </recipe-meta>
     <p>{{ recipe.description }}</p>
-    <span>Read more...</span>
+    <span>view recipe</span>
     <ul class="tag-list">
-      <li class="tag-default tag-pill tag-outline"
+      <li class="tag-default tag-pill "
         *ngFor="let tag of recipe.tags">
         {{ tag }}
       </li>
     </ul>
   </a>
+
+</div>
 </div>
