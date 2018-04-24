@@ -579,6 +579,7 @@ class Following_Feed(Resource):
     def get(self, num_to_get = 10):
         num_to_get = int(num_to_get)
         _account_name = get_jwt_identity()
+        recipes_with_user = []
         if _account_name:
             following = client.db.accounts.find_one({'username': str(_account_name)}).get('following')
             following_list = []
