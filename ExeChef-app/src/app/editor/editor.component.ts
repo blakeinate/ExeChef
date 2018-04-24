@@ -24,6 +24,11 @@ export class EditorComponent implements OnInit {
   tagField = new FormControl();
   stepField = new FormControl();
 
+  b64: any;
+  hasImage: boolean;
+  image:any;
+
+
   unitStep:Array<number> = [100];
   unitMax: Array<number> = [100];
   unitValue:Array<number> = [50];
@@ -176,6 +181,7 @@ export class EditorComponent implements OnInit {
     this.recipeForm = this.fb.group({
       name: '',
       description: '',
+      image: null,
       ingredients: this.fb.array([
         this.initIngredients(),
       ]),
@@ -189,7 +195,7 @@ export class EditorComponent implements OnInit {
     return this.fb.group({
       name:'',
       amount:'',
-      unit:''
+      unit:'',
     })
   }
 
@@ -204,6 +210,7 @@ export class EditorComponent implements OnInit {
   }
 
   ngOnInit() {
+      this.hasImage = false;
       this.unitIndex = 0;
       this.unitStep[0] = 100;
       this.unitMax[0]= 100;
@@ -225,6 +232,26 @@ export class EditorComponent implements OnInit {
     );
   }
 
+  onFileChange(event) {
+    let reader = new FileReader();
+   if(event.target.files && event.target.files.length > 0) {
+     let file = event.target.files[0];
+    // console.log("file balake wants",file);
+     reader.readAsDataURL(file);
+     reader.onload = () => {
+       this.hasImage = true;
+       this.b64 = reader.result.split(',')[1];
+      this.image ={
+        image:{
+         filename: file.name,
+         filetype: file.type,
+         value: reader.result.split(',')[1]
+       }
+
+     }
+   };
+   }
+ }
   addTag() {
     // retrieve tag control
     let tag = this.tagField.value;
@@ -285,6 +312,7 @@ export class EditorComponent implements OnInit {
   submitForm() {
     // update the model
     this.updateRecipe(this.recipeForm.value);
+    (<any>Object).assign(this.recipe,this.image);
     console.log("this is the recipe object that i am sending",this.recipe);
 
     // post the changes
