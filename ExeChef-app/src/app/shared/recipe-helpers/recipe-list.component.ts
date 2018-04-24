@@ -26,11 +26,16 @@ export class RecipeListComponent {
   }
 
 runQuery() {
+  console.log("I made it here");
+  console.log(this.listConfig.type);
+
     this.loading = true;
     this.results = [];
 
     this.recipesService.query(this.listConfig)
      .subscribe(recipes => {
+       console.log("I made it here also");
+       console.log(recipes);
         this.loading = false;
         this.results = recipes
 

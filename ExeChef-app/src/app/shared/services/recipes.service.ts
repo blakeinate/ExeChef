@@ -47,7 +47,8 @@ export class RecipesService {
         }
         if(config.type !== "global"){
           return this.apiService.get(request)
-          .map(data => data.recipes);
+          .map(data => {
+            return data.recipes});
         }
   }
 

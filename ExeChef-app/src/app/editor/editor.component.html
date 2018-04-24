@@ -72,11 +72,11 @@
                        type="range"
                        class="slider__range"
                        (input)="changeLabel($event)"
-                       [value]="unitValue"
+                       [value]="unitValue[i]"
                        min ="0"
-                       [step]="unitStep"
-                       [max]="unitMax">
-                       <span class="slider__value">{{unitValue}}{{unitLabel}}</span>
+                       [step]="unitStep[i]"
+                       [max]="unitMax[i]">
+                       <span class="slider__value">{{unitValue[i]}}{{unitLabel[i]}}</span>
                      </div>
                    </fieldset>
 

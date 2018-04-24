@@ -10,12 +10,16 @@
         <form [formGroup]="settingsForm" (ngSubmit)="submitForm()">
           <fieldset [disabled]="isSubmitting">
 
-            <!-- <fieldset class="form-group">
+            <fieldset class="form-group">
               <input class="form-control"
-                type="text"
+                type="file"
+                id="avatar"
+                (change)="onFileChange($event)"
+                #fileInput
                 placeholder="URL of profile picture"
-                formControlName="image" />
-            </fieldset> -->
+                formControlName="image"
+              />
+            </fieldset>
 
             <!-- <fieldset class="form-group">
               <input class="form-control form-control-lg"

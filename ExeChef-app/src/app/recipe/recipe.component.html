@@ -7,7 +7,7 @@
       <recipe-meta [recipe]="recipe">
           <span [hidden]="!canModify">
           <a class="btn btn-sm btn-outline-secondary"
-             [routerLink]="['/editor', recipe._id]">
+             [routerLink]="['/editor', recipe._id.$oid]">
             <i class="ion-edit"></i> Edit Recipe
          </a>
 

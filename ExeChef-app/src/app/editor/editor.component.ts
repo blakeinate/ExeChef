@@ -24,10 +24,10 @@ export class EditorComponent implements OnInit {
   tagField = new FormControl();
   stepField = new FormControl();
   setUnit = new Unit();
-  unitStep:number = 100;
-  unitMax: number = 100;
-  unitValue:number = 50;
-  unitLabel: string;
+  unitStep:Array<number> = [100];
+  unitMax: Array<number> = [100];
+  unitValue:Array<number> = [50];
+  unitLabel: Array<string> = ["unit"];
   units: Array<Unit> = [
     {
       name:"teaspoon",
@@ -162,9 +162,10 @@ export class EditorComponent implements OnInit {
       step: .25
     },
   ];
+
+  unitIndex: number = 0;
   errors: Object = {};
   isSubmitting: boolean = false;
-
   constructor(
     private recipesService: RecipesService,
     private route: ActivatedRoute,
@@ -182,10 +183,6 @@ export class EditorComponent implements OnInit {
     });
     // Optional: subscribe to value changes on the form
     // this.recipeForm.valueChanges.subscribe(value => this.updateArticle(value));
-
-
-
-
   }
 
   initIngredients(){
@@ -216,6 +213,11 @@ export class EditorComponent implements OnInit {
         if (data.recipe) {
           this.recipe = data.recipe;
           this.recipeForm.patchValue(data.recipe);
+          const control = <FormArray>this.recipeForm.controls["ingredients"];
+          for(let i = 0; i< this.recipe.ingredients.length-1;i++){
+              this.addIngredients();
+          }
+          control.patchValue(this.recipe.ingredients);
         }
       }
     );
@@ -262,13 +264,15 @@ export class EditorComponent implements OnInit {
     let index = this.units.findIndex(unit => unit.name === name);
     if(index > -1){
       let unit = this.units[index];
-      this.unitStep = unit.step;
-      this.unitMax = unit.max;
-      this.unitValue = unit.max/2;
-      this.unitLabel = unit.abrev;
+      this.unitStep[this.unitIndex] = unit.step;
+      this.unitMax[this.unitIndex] = unit.max;
+      this.unitValue[this.unitIndex] = unit.max/2;
+      this.unitLabel[this.unitIndex] = unit.abrev;
     }else{
-        this.unitLabel = name;
+        this.unitLabel[this.unitIndex] = name;
     }
+    this.unitIndex++;
+
 
   }
   changeLabel(input:any){

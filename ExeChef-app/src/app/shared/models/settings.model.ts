@@ -1,5 +1,6 @@
 export class Settings{
   //username: string;
+  image?: string|any;
   bio?:string;
   email?: string;
   old_password?: string;

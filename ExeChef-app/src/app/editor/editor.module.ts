@@ -16,7 +16,7 @@ const editorRouting: ModuleWithProviders = RouterModule.forChild([
     component: EditorComponent,
     canActivate: [AuthGuard],
     resolve: {
-      article: EditableRecipeResolver
+      recipe: EditableRecipeResolver
     }
   }
 ]);

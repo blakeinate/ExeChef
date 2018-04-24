@@ -11,7 +11,7 @@ import { User,Settings, UserService } from '../shared';
 })
 
 export class SettingsComponent implements OnInit{
-
+  image:any;
   user: User = new User();
   settings: Settings = new Settings();
   settingsForm: FormGroup;
@@ -24,18 +24,44 @@ export class SettingsComponent implements OnInit{
     private fb: FormBuilder
   ){
     this.settingsForm = this.fb.group({
-      //image: '',
+
       //username: '',
       bio: '',
       email: '',
       old_password: '',
       new_password: '',
+      image: null,
     });
   }
   ngOnInit(){
     (<any>Object).assign(this.user,this.userService.getCurrentUser());
     this.settingsForm.patchValue(this.user);
   }
+
+  onFileChange(event) {
+   let reader = new FileReader();
+   if(event.target.files && event.target.files.length > 0) {
+     let file = event.target.files[0];
+     reader.readAsDataURL(file);
+     reader.onload = () => {
+
+       // this.settingsForm.get('image').setValue({
+       //
+       //   filename: file.name,
+       //   filetype: file.type,
+       //   value: reader.result.split(',')[1]
+       // })
+
+        this.image = {
+         image: {
+         filename: file.name,
+         filetype: file.type,
+         value: reader.result.split(',')[1]
+       }
+     };
+     };
+   }
+ }
 
   logout(){
     this.userService.purgeAuth();
@@ -46,9 +72,11 @@ export class SettingsComponent implements OnInit{
     this.isSubmitting = true;
 
     this.updateSettings(this.settingsForm.value);
-
+    (<any>Object).assign(this.settings,this.image);
     this.userService.update(this.settings).subscribe(
-      updatedUser => this.router.navigateByUrl('/profile/'+ updatedUser.username),
+      updatedUser => {
+        this.router.navigateByUrl('/profile/'+ updatedUser.username)
+      },
       err =>{
         this.errors = {
           errors: {"Error":err.message}
