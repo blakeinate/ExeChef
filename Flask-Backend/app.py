@@ -501,29 +501,55 @@ class Logout2(Resource):
 
 #returns list of recipes from user's favorites list
 class Favorites(Resource):
-    @jwt_required
-    def get(self, num_to_get = 10):
+    @jwt_optional
+    def get(self, username= None, num_to_get = 10):
         _account_name = get_jwt_identity()
-        #return list of recipes from user {'userFavorites': []}
-        cursor = client.db.accounts.find_one({'username': str(_account_name)})
-        if cursor == None:
-            abort(400, message='No user found associated with provided access token.')
+        if username:
+            #return list of recipes from user {'userFavorites': []}
+            cursor = client.db.accounts.find_one({'username': str(username)})
+            if cursor == None:
+                abort(400, message='No user found with provided username.')
 
-        created_list = []
-        if isinstance(cursor.get('favorites'), (list,)):
-            for recipe_id in cursor.get('favorites'):
-                created_list.append({'_id': ObjectId(recipe_id)})
-        if created_list:
-            recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
-            recipes_with_user = []
-            for recipe in recipes:
-                username = recipe.get('author')
-                author = client.db.accounts.find_one({'username': username},
-                                                     {'password': 0, 'email': 0, 'following': 0,
-                                                      'followers': 0, 'created': 0, 'favorites': 0})
-                recipe_with_user = recipe
-                recipe_with_user['user'] = author
-                recipes_with_user.append(recipe_with_user)
+            created_list = []
+            if isinstance(cursor.get('favorites'), (list,)):
+                for recipe_id in cursor.get('favorites'):
+                    created_list.append({'_id': ObjectId(recipe_id), 'private': False})
+            if created_list:
+                recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+                recipes_with_user = []
+                for recipe in recipes:
+                    username = recipe.get('author')
+                    author = client.db.accounts.find_one({'username': username},
+                                                         {'password': 0, 'email': 0, 'following': 0,
+                                                          'followers': 0, 'created': 0, 'favorites': 0})
+                    recipe_with_user = recipe
+                    recipe_with_user['user'] = author
+                    recipes_with_user.append(recipe_with_user)
+            else:
+                recipes_with_user = []
+        elif _account_name:
+            # return list of recipes from user {'userFavorites': []}
+            cursor = client.db.accounts.find_one({'username': str(_account_name)})
+            if cursor == None:
+                abort(400, message='No user found associated with provided access token.')
+
+            created_list = []
+            if isinstance(cursor.get('favorites'), (list,)):
+                for recipe_id in cursor.get('favorites'):
+                    created_list.append({'_id': ObjectId(recipe_id)})
+            if created_list:
+                recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+                recipes_with_user = []
+                for recipe in recipes:
+                    username = recipe.get('author')
+                    author = client.db.accounts.find_one({'username': username},
+                                                         {'password': 0, 'email': 0, 'following': 0,
+                                                          'followers': 0, 'created': 0, 'favorites': 0})
+                    recipe_with_user = recipe
+                    recipe_with_user['user'] = author
+                    recipes_with_user.append(recipe_with_user)
+            else:
+                recipes_with_user = []
         else:
             recipes_with_user = []
 
@@ -536,28 +562,52 @@ class Favorites(Resource):
 
 #returns list of recipes created by the current user from their created list
 class User_Recipes(Resource):
-    @jwt_required
-    def get(self, num_to_get = 10):
+    @jwt_optional
+    def get(self, username = None, num_to_get = 10):
         _account_name = get_jwt_identity()
-        #return list of recipes from user {'userFavorites': []}
-        cursor = client.db.accounts.find_one({'username': str(_account_name)})
-        if cursor == None:
-            abort(400, message='No user found associated with provided access token.')
-        created_list = []
-        if isinstance(cursor.get('created'), (list,)) and cursor.get('created'):
-            for recipe_id in cursor.get('created'):
-                created_list.append({'_id': ObjectId(recipe_id)})
-        if created_list:
-            recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
-            recipes_with_user = []
-            for recipe in recipes:
-                username = recipe.get('author')
-                author = client.db.accounts.find_one({'username': username},
-                                                     {'password': 0, 'email': 0, 'following': 0,
-                                                      'followers': 0, 'created': 0, 'favorites': 0})
-                recipe_with_user = recipe
-                recipe_with_user['user'] = author
-                recipes_with_user.append(recipe_with_user)
+        if username:
+            cursor = client.db.accounts.find_one({'username': str(username)})
+            if cursor == None:
+                abort(400, message='No user found with provided username.')
+            created_list = []
+            if isinstance(cursor.get('created'), (list,)) and cursor.get('created'):
+                for recipe_id in cursor.get('created'):
+                    created_list.append({'_id': ObjectId(recipe_id), 'private': False})
+            if created_list:
+                recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+                recipes_with_user = []
+                for recipe in recipes:
+                    username = recipe.get('author')
+                    author = client.db.accounts.find_one({'username': username},
+                                                         {'password': 0, 'email': 0, 'following': 0,
+                                                          'followers': 0, 'created': 0, 'favorites': 0})
+                    recipe_with_user = recipe
+                    recipe_with_user['user'] = author
+                    recipes_with_user.append(recipe_with_user)
+            else:
+                recipes_with_user = []
+        elif _account_name:
+            #return list of recipes from user {'userFavorites': []}
+            cursor = client.db.accounts.find_one({'username': str(_account_name)})
+            if cursor == None:
+                abort(400, message='No user found associated with provided access token.')
+            created_list = []
+            if isinstance(cursor.get('created'), (list,)) and cursor.get('created'):
+                for recipe_id in cursor.get('created'):
+                    created_list.append({'_id': ObjectId(recipe_id)})
+            if created_list:
+                recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
+                recipes_with_user = []
+                for recipe in recipes:
+                    username = recipe.get('author')
+                    author = client.db.accounts.find_one({'username': username},
+                                                         {'password': 0, 'email': 0, 'following': 0,
+                                                          'followers': 0, 'created': 0, 'favorites': 0})
+                    recipe_with_user = recipe
+                    recipe_with_user['user'] = author
+                    recipes_with_user.append(recipe_with_user)
+            else:
+                recipes_with_user = []
         else:
             recipes_with_user = []
         bson_to_json = dumps(recipes_with_user)
@@ -578,8 +628,8 @@ class Following_Feed(Resource):
             following_list = []
             if isinstance(following, (list,)) and following:
                 for item in following:
-                    following_list.append({'author': item})
-                recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
+                    following_list.append({'author': item, 'private': False})
+                recent_recipes = client.db.recipes.find({'$or': following_list}).limit(num_to_get).sort('created_date.$date', -1)
                 recipes_with_user = []
                 for recipe in recent_recipes:
                     username = recipe.get('author')
@@ -590,7 +640,7 @@ class Following_Feed(Resource):
                     recipe_with_user['user'] = author
                     recipes_with_user.append(recipe_with_user)
         else:
-            recent_recipes = client.db.recipes.find({'private': 'False'}).limit(num_to_get).sort('created_date.$date', -1)
+            recent_recipes = client.db.recipes.find({'private': False}).limit(num_to_get).sort('created_date.$date', -1)
             recipes_with_user = []
             for recipe in recent_recipes:
                 username = recipe.get('author')
@@ -684,7 +734,7 @@ class Recipe(Resource):
         cursor = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
         if cursor == None:
             abort(400, message='No recipe found with the provided recipe ID.')
-        if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == 'True'):
+        if (cursor.get('author') != get_jwt_identity()) and (cursor.get('private') == True):
             abort(403, message='Private recipe is owned by another user.')
 
         favorited = False
@@ -744,7 +794,7 @@ class Recipe(Resource):
             abort(403, message='Recipe is owned by another user. Modifications are not allowed.')
         to_update = {}
 
-        image_name = handle_recipe_image(request, _account_name, recipe_id)
+        image_name = handle_recipe_image(recipe_image, _account_name, recipe_id)
         if image_name:
             to_update['image_name'] = image_name
 
@@ -891,8 +941,8 @@ class Comment(Resource):
 class Search_Tags(Resource):
     def get(self, tag_str, num_to_get = 10):
         #split string and remove non alphanumeric
-        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE)} for string in tag_str.split('&')]
-        recipes = client.db.recipes.find({'$or': tag_list, 'private': 'False'}).limit(num_to_get).sort('favorited_count', -1)
+        tag_list = [{'tags': re.compile(''.join(c for c in string if c.isalnum()), re.IGNORECASE), 'private': False} for string in tag_str.split('&')]
+        recipes = client.db.recipes.find({'$or': tag_list}).limit(num_to_get).sort('favorited_count', -1)
         recipes_with_user = []
         for recipe in recipes:
             username = recipe.get('author')
@@ -924,8 +974,8 @@ api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User/<username>', '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
-api.add_resource(Favorites, '/Recipe/Favorites/<num_to_get>', '/Recipe/Favorites')
-api.add_resource(User_Recipes, '/Recipe/Created/<num_to_get>', '/Recipe/Created')
+api.add_resource(Favorites, '/Recipe/Favorites/<num_to_get>', '/Recipe/Favorites/<username>/<num_to_get>', '/Recipe/Favorites/<username>', '/Recipe/Favorites')
+api.add_resource(User_Recipes, '/Recipe/Created/<username>/<num_to_get>','/Recipe/Created/<username>', '/Recipe/Created/<num_to_get>', '/Recipe/Created' )
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
 api.add_resource(Comment, '/Recipe/<recipe_id>/comments', '/Recipe/comments/<comment_id>')

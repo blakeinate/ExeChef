@@ -213,7 +213,7 @@ class TestDataAccess(unittest.TestCase):
         access_token = login_response.json().get('user').get('access_token')
         recipe = {'recipe': {
                   'name': 'testrecipe',
-                  'private': 'False',
+                  'private': False,
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -232,7 +232,7 @@ class TestDataAccess(unittest.TestCase):
         access_token = login_response.json().get('user').get('access_token')
         recipe = {'recipe': {
                   'name': 'testrecipe',
-                  'private': 'True',
+                  'private': True,
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
@@ -252,7 +252,7 @@ class TestDataAccess(unittest.TestCase):
         recipe = {
                   'recipe':{
                   'name': 'testrecipe',
-                  'private': 'True',
+                  'private': True,
                   'ingredients': [
                       {'name': 'someingredient',
                        'amount': '100', 'unit':'pounds'}],
