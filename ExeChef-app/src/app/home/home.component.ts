@@ -43,13 +43,15 @@ export class HomeComponent implements OnInit {
   }
 
   setListTo(type: string = '') {
+
     // If feed is requested but user is not authenticated, redirect to login
     if (type === 'feed' && !this.isAuthenticated) {
       this.router.navigateByUrl('/login');
       return;
     }
-
+    console.log('setting to ',type);
     // Otherwise, set the list object
-    this.listConfig.type=type;
+    this.listConfig = new RecipeListConfig();
+    this.listConfig.type =type;
   }
  }

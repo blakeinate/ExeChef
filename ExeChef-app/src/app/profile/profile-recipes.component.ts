@@ -17,10 +17,15 @@ export class ProfileRecipesComponent implements OnInit {
   recipesConfig: RecipeListConfig = new RecipeListConfig();
 
   ngOnInit() {
+    this.route.parent.params.subscribe(
+      (data)=>  this.recipesConfig.profile_name = data.username
+    )
     this.route.url.subscribe(
       (data) => {
         let type = data[data.length - 1].path;
         this.recipesConfig.type = type;
+
+        console.log("only fire when im clicked");
       }
     );
   }

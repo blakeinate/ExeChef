@@ -40,7 +40,8 @@
   <div class="container page">
 
     <div class="row recipe-content">
-      <img [src]="recipe.image_name" alt="A picture of {{recipe.name}}">
+
+      <img src="../../../assets/images/{{recipe.user.username}}/{{recipe.image_name}}" alt="A picture of {{recipe.name}}">
       <h4>{{recipe.description}}</h4>
 
       <div class="col-md-12">

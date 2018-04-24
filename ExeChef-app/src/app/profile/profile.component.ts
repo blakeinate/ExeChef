@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute,Router } from '@angular/router';
 
 import { User, UserService, Profile } from '../shared';
 
@@ -9,6 +9,7 @@ import { User, UserService, Profile } from '../shared';
 })
 export class ProfileComponent implements OnInit {
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private userService: UserService
   ) {}
@@ -22,7 +23,7 @@ export class ProfileComponent implements OnInit {
       (data) => {
         this.profile = data.profile.user;
         this.getCurrentUser();
-
+        this.router.navigateByUrl(`/profile/${this.profile.username}/created`);
       }
     );
   }

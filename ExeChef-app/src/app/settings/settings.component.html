@@ -11,6 +11,7 @@
           <fieldset [disabled]="isSubmitting">
 
             <fieldset class="form-group">
+              <img [hidden]="hasImage" src="../../assets/images/{{user.username}}/{{user.image_name}}" class="user-img" />
               <img [hidden] ="!hasImage" src='data:image/jpeg;base64,{{b64}}' />
               <input class="form-control"
                 accept="image/*"

@@ -1,6 +1,6 @@
 <div class="recipe-meta">
   <a [routerLink]="['/profile', recipe.user.username]">
-    <img [src]="recipe.user.image" />
+    <img src="../../../assets/images/{{recipe.user.username}}/{{recipe.user.image_name}}" class="user-img" />
   </a>
 
   <div class="info">
