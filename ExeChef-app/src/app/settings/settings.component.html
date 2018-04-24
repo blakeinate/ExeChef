@@ -9,10 +9,9 @@
 
         <form [formGroup]="settingsForm" (ngSubmit)="submitForm()">
           <fieldset [disabled]="isSubmitting">
-
+            <img [hidden]="hasImage" src="../../assets/images/{{user.username}}/{{user.image_name}}" class="user-img user-img-center" />
+            <img [hidden] ="!hasImage" src='data:image/jpeg;base64,{{b64}}'  class="user-img user-img-center" />
             <fieldset class="form-group">
-              <img [hidden]="hasImage" src="../../assets/images/{{user.username}}/{{user.image_name}}" class="user-img" />
-              <img [hidden] ="!hasImage" src='data:image/jpeg;base64,{{b64}}' />
               <input class="form-control"
                 accept="image/*"
                 type="file"

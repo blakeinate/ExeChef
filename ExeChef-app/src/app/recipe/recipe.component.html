@@ -2,7 +2,6 @@
 
   <div class="banner">
     <div class="container">
-      <h1>{{ recipe.name }}</h1>
 
       <recipe-meta [recipe]="recipe">
           <span [hidden]="!canModify">
@@ -40,23 +39,26 @@
   <div class="container page">
 
     <div class="row recipe-content">
-
+      <h1 class="title-name">{{recipe.name}}</h1>
       <img src="../../../assets/images/{{recipe.user.username}}/{{recipe.image_name}}" alt="A picture of {{recipe.name}}">
-      <h4>{{recipe.description}}</h4>
+      <p>{{recipe.description}}</p>
 
       <div class="col-md-12">
-        <ul class="step-list">
+        <ol class="step-list">
+          <h6 class ="title">Steps:</h6>
           <li *ngFor="let steps of recipe.steps"
             class="step">
-            {{ steps }}
+              {{ steps }}
           </li>
-        </ul>
+        </ol>
       </div>
 
       <div class="col-md-12">
         <ul class="ingredients-list">
+          <h6 class ="title">Ingredients:</h6>
+
           <li *ngFor="let ingredient of recipe.ingredients"
-            class="tag-default tag-pill tag-outline">
+            class="">
             {{ ingredient.name }}, {{ ingredient.amount }}{{ingredient.unit}}{{ ingredient.amount>1?'s':''}}
 
           </li>
@@ -66,7 +68,7 @@
       <div class="col-md-12">
         <ul class="tag-list">
           <li *ngFor="let tag of recipe.tags"
-            class="tag-default tag-pill tag-outline">
+            class="tag-default tag-pill">
             {{ tag }}
           </li>
         </ul>
@@ -123,8 +125,8 @@
                   [formControl]="commentControl"
                 ></textarea>
               </div>
-              <div class="card-footer">
-                <img [src]="currentUser.image" class="comment-author-img" />
+              <div class="card-footer comment-author">
+                <img src="../../assets/images/{{currentUser.username}}/{{ currentUser.image_name}}" class="comment-author-img" />
                 <button class="btn btn-sm btn-primary" type="submit">
                  Post Comment
                 </button>
