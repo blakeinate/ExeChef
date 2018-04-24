@@ -15,8 +15,9 @@ import json
 import re
 import os.path
 from werkzeug.utils import secure_filename
+import base64
 
-UPLOAD_FOLDER = '/static/images/'
+UPLOAD_FOLDER = './static/images/'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
@@ -72,8 +73,8 @@ def allowed_file(filename):
 
 #uploads image to server and returns secure filename
 def upload_image(file, username):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+    if file and allowed_file(file.get('filename')):
+        filename = secure_filename(file.get('filename'))
         try:
             os.makedirs(app.config['UPLOAD_FOLDER'] + str(username))
         except OSError:
@@ -91,7 +92,9 @@ def upload_image(file, username):
                     count = count + 1
 
         #save to upload folder
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'] + str(username) + '/', filename))
+        with open(app.config['UPLOAD_FOLDER'] + str(username) + '/' + filename, "wb") as fh:
+            fh.write(base64.b64decode(file.get('value').encode()))
+        #file.save(os.path.join(app.config['UPLOAD_FOLDER'] + str(username) + '/', filename))
         return filename
     else:
         return None
@@ -105,17 +108,10 @@ def remove_old_image(filename, username):
         return False
 
 
-def handle_recipe_image(recipe_request, username, recipe_id=None):
+def handle_recipe_image(recipe_image, username, recipe_id=None):
     # upload image for recipe
-    image = None;
-    if 'image' in recipe_request.files:
-        image = recipe_request.files['image']
-        if image.filename == '':
-            image = None
-    # upload image and get secure filename
-    image_filename = None
-    if image:
-        image_filename = upload_image(image, username)
+    if recipe_image:
+        image_filename = upload_image(recipe_image, username)
     if image_filename:
         if recipe_id:
             recipe = client.db.recipes.find_one({'_id': ObjectId(recipe_id)})
@@ -126,18 +122,11 @@ def handle_recipe_image(recipe_request, username, recipe_id=None):
         return None
 
 
-def handle_user_image(user_request, username):
+def handle_user_image(user_image, username):
     # upload image for recipe
-    image = None;
-    if 'image' in user_request.files:
-        print "successfully see image"
-        image = user_request.files['image']
-        if image.filename == '':
-            image = None
-    # upload image and get secure filename
-    image_filename = None
-    if image:
-        image_filename = upload_image(image, username)
+
+    if user_image:
+        image_filename = upload_image(user_image, username)
     if image_filename:
         if username:
             user = client.db.accounts.find_one({'username': username})
@@ -202,7 +191,7 @@ class User(Resource):
         favorites = json_data.get('favorites')
         following = json_data.get('following')
         followers = json_data.get('followers')
-        user_image = json_data.get('image_name')
+        user_image = json_data.get('image')
         _account_name = get_jwt_identity()
 
         if not _account_name:
@@ -260,8 +249,7 @@ class User(Resource):
 
         #return list of recipes from user {'userFavorites': []}
         cursor = client.db.accounts.find_one({'username': str(_account_name)})
-
-        image_filename = handle_user_image(request, _account_name)
+        image_filename = handle_user_image(user_image, _account_name)
         if image_filename:
             to_update['image_name'] = image_filename
 
