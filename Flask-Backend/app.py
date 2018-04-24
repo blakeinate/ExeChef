@@ -194,6 +194,9 @@ class User(Resource):
         user_image = json_data.get('image')
         _account_name = get_jwt_identity()
 
+        if isinstance(user_image, basestring):
+            user_image = None
+
         if not _account_name:
             abort(422, message='The provided username is invalid.')
 
@@ -626,7 +629,10 @@ class Recipe(Resource):
         description = json_data.get('recipe').get('description')
         private = json_data.get('recipe').get('private')
         ingredients = json_data.get('recipe').get('ingredients')
-        recipe_image = json_data.get('recipe').get('image_name')
+        recipe_image = json_data.get('recipe').get('image')
+
+        if isinstance(recipe_image, basestring):
+            recipe_image = None
 
         if (name == None) or (private == None) or (ingredients == None) or (steps == None):
             abort(422, message='Some required fields were not provided.')
@@ -636,7 +642,7 @@ class Recipe(Resource):
         _account_name = get_jwt_identity()
 
         image_filename = None
-        image_name = handle_recipe_image(request, _account_name)
+        image_name = handle_recipe_image(recipe_image, _account_name)
         if image_name:
             image_filename = image_name
 
