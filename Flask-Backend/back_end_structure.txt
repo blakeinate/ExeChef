@@ -706,7 +706,8 @@ Alternate returns:
 ---------------------------------------------------------------
 
 get users created recipes
-A GET request to the /Recipe/Created/<num_to_get> should be made.
+A GET request to the /Recipe/Created/<username>/<num_to_get> or /Recipe/Created/<num_to_get> should be made.
+    username and num_to_get are optional parameters, without username, gets logged in users recipes, this requires JWT
 Returns: list of recipes in the following format:
   {
     'data':{
@@ -767,7 +768,8 @@ Alternate returns:
 ---------------------------------------------------------------
 
 get users favorite recipes
-A GET request to the /Recipe/Favorites/<num_to_get> should be made.
+A GET request to the /Recipe/Favorites/<username>/<num_to_get> or /Recipe/Favorites/<num_to_get> should be made.
+    username and num_to_get are optional parameters, without username, gets logged in users recipes, this requires JWT
 Returns: list of recipes in the following format:
   {
     'data':{
