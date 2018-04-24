@@ -37,31 +37,33 @@ export class SettingsComponent implements OnInit{
     (<any>Object).assign(this.user,this.userService.getCurrentUser());
     this.settingsForm.patchValue(this.user);
   }
-
   onFileChange(event) {
-   let reader = new FileReader();
-   if(event.target.files && event.target.files.length > 0) {
-     let file = event.target.files[0];
-     reader.readAsDataURL(file);
-     reader.onload = () => {
-
-       // this.settingsForm.get('image').setValue({
-       //
-       //   filename: file.name,
-       //   filetype: file.type,
-       //   value: reader.result.split(',')[1]
-       // })
-
-        this.image = {
-         image: {
-         filename: file.name,
-         filetype: file.type,
-         value: reader.result.split(',')[1]
+    let fileList: FileList = event.target.files;
+       if(fileList.length > 0) {
+           let file: File = fileList[0];
+           let formData:FormData = new FormData();
+           formData.append('uploadFile', file, file.name);
+            this.userService.updateImage(formData).subscribe(
+              user =>{
+              }
+            )
        }
-     };
-     };
-   }
  }
+ //  onFileChange(event) {
+ //   let reader = new FileReader();
+ //   if(event.target.files && event.target.files.length > 0) {
+ //     let file = event.target.files[0];
+ //     reader.readAsDataURL(file);
+ //     reader.onload = () => {
+ //       let formData:FormData = new FormData();
+ //       console.log(file,file.name);
+ //       formData.append('uploadFile', file, file.name);
+ //        this.userService.updateImage(formData).subscribe(
+ //          user =>{
+ //          })
+ //     };
+ //   }
+ // }
 
   logout(){
     this.userService.purgeAuth();

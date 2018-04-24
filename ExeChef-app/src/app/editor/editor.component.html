@@ -58,7 +58,7 @@
                        list="units"
 
                        placeholder="What's the unit?"
-                       (change)="setSlider($event)"/>
+                       (change)="setSlider($event,i)"/>
                      <datalist id="units">
                        <option *ngFor="let unit of units; let i = index;" [value]="unit.name">
                          {{unit.name}}
@@ -71,7 +71,7 @@
                        formControlName="amount"
                        type="range"
                        class="slider__range"
-                       (input)="changeLabel($event)"
+                       (input)="changeLabel($event,i)"
                        [value]="unitValue[i]"
                        min ="0"
                        [step]="unitStep[i]"

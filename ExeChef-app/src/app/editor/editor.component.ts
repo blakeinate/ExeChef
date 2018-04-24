@@ -23,7 +23,7 @@ export class EditorComponent implements OnInit {
   ingredients: FormGroup;
   tagField = new FormControl();
   stepField = new FormControl();
-  setUnit = new Unit();
+
   unitStep:Array<number> = [100];
   unitMax: Array<number> = [100];
   unitValue:Array<number> = [50];
@@ -194,6 +194,7 @@ export class EditorComponent implements OnInit {
   }
 
   addIngredients(){
+    this.unitIndex++;
     const control = <FormArray>this.recipeForm.controls["ingredients"];
     control.push(this.initIngredients());
   }
@@ -203,10 +204,11 @@ export class EditorComponent implements OnInit {
   }
 
   ngOnInit() {
-      this.setUnit.step = 100;
-      this.setUnit.max = 100;
-      this.setUnit.value = 50;
-      this.setUnit.abrev = "";
+      this.unitIndex = 0;
+      this.unitStep[0] = 100;
+      this.unitMax[0]= 100;
+      this.unitValue[0] = 50;
+      this.unitLabel[0] = "";
     // If there's an recipe prefetched, load it
     this.route.data.subscribe(
       (data: {recipe: Recipe}) => {
@@ -259,24 +261,24 @@ export class EditorComponent implements OnInit {
     (<any>Object).assign(this.recipe, values);
   }
 
-  setSlider(input:any){
+  setSlider(input:any,changeIndex:number){
+
     let name = input.srcElement.value;
     let index = this.units.findIndex(unit => unit.name === name);
     if(index > -1){
       let unit = this.units[index];
-      this.unitStep[this.unitIndex] = unit.step;
-      this.unitMax[this.unitIndex] = unit.max;
-      this.unitValue[this.unitIndex] = unit.max/2;
-      this.unitLabel[this.unitIndex] = unit.abrev;
+      this.unitStep[changeIndex] = unit.step;
+      this.unitMax[changeIndex] = unit.max;
+      this.unitValue[changeIndex] = unit.max/2;
+      this.unitLabel[changeIndex] = unit.abrev;
     }else{
-        this.unitLabel[this.unitIndex] = name;
+        this.unitLabel[changeIndex] = name;
     }
-    this.unitIndex++;
 
 
   }
-  changeLabel(input:any){
-      this.unitValue = input.srcElement.value;
+  changeLabel(input:any,changeindex:number){
+      this.unitValue[changeindex] = input.srcElement.value;
 
   }
 

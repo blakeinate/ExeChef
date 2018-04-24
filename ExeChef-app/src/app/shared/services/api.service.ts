@@ -32,6 +32,25 @@ export class ApiService {
     return new Headers(headersConfig);
   }
 
+  private setImageHeaders(refresh: Boolean = false): Headers {
+    let headersConfig =
+    {};
+    // let headersConfig = {
+    //   'Content-Type': 'multipart/form-data',
+    //   'Accept': 'application/json',
+    // };
+    let token = this.jwtService.getToken();
+    if(refresh){
+      token = this.jwtService.getRefreshToken();
+    }
+    if(token){
+      headersConfig['Authorization'] = `Bearer ${token}`;
+    }
+
+    return new Headers(headersConfig);
+  }
+
+
   private formatErrors(error: Response) {
      return Observable.throw(error.json());
   }
@@ -41,6 +60,7 @@ export class ApiService {
         .catch(this.formatErrors)
         .map((res:Response) => res.json());
   }
+
 
   postRefresh(path: string, body: Object = {}): Observable<any> {
     return this.http.post(`${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders(true) })
@@ -76,6 +96,12 @@ export class ApiService {
 
   put(path: string, body: Object = {}): Observable<any> {
     return this.http.put( `${environment.api_url}${path}`, JSON.stringify(body), { headers: this.setHeaders() })
+        .catch(this.formatErrors)
+        .map((res:Response) => res.json());
+  }
+
+  putImage(path: string, body: Object = {}): Observable<any> {
+    return this.http.put(`${environment.api_url}${path}`, JSON.stringify(body), {headers: this.setImageHeaders()})
         .catch(this.formatErrors)
         .map((res:Response) => res.json());
   }

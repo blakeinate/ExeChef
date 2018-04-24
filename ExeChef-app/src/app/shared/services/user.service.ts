@@ -136,4 +136,16 @@ export class UserService {
       });
   }
 
+  updateImage(imgForm:FormData):Observable<User>{
+    console.log("sending->",imgForm);
+    return this.apiService.putImage('/User',imgForm)
+    .map(
+      data =>{
+        console.log("update image send back",data);
+
+        return data.user;
+      }
+    )
+  }
+
 }
