@@ -551,7 +551,7 @@ class User_Recipes(Resource):
         if cursor == None:
             abort(400, message='No user found associated with provided access token.')
         created_list = []
-        if isinstance(cursor.get('created'), (list,)):
+        if isinstance(cursor.get('created'), (list,)) and cursor.get('created'):
             for recipe_id in cursor.get('created'):
                 created_list.append({'_id': ObjectId(recipe_id)})
         if created_list:
@@ -583,7 +583,7 @@ class Following_Feed(Resource):
         if _account_name:
             following = client.db.accounts.find_one({'username': str(_account_name)}).get('following')
             following_list = []
-            if isinstance(following, (list,)):
+            if isinstance(following, (list,)) and following:
                 for item in following:
                     following_list.append({'author': item})
                 recent_recipes = client.db.recipes.find({'$or': following_list, 'private':'False'}).limit(num_to_get).sort('created_date.$date', -1)
