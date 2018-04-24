@@ -13,7 +13,9 @@
       <div class="col-md-9">
         <div class="feed-toggle">
           <ul class="nav nav-pills outline-active">
-            <li class="nav-item">
+            <li class="nav-item"
+              [hidden] = "!isAuthenticated">
+
               <a class="nav-link"
                  [ngClass]="{'active': listConfig.type === 'user'}"
                  (click)="setListTo('user')">
