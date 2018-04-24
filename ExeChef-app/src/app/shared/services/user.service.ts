@@ -136,8 +136,8 @@ export class UserService {
       });
   }
 
-  updateImage(imgForm:FormData):Observable<User>{
-    console.log("sending->",imgForm);
+  updateImage(imgForm):Observable<User>{
+    console.log("sending->",imgForm.get('uploadFile'));
     return this.apiService.putImage('/User',imgForm)
     .map(
       data =>{
