@@ -298,6 +298,9 @@ class User(Resource):
         if not validate_email(str(_account_email)):
             abort(422, message='The provided email is invalid.')
 
+        if _account_name == 'CurrentUser':
+            abort(422, message="Provided username is reserved.")
+
         #add password stuff here, encrypting and uploading
 
         #check if username exists
@@ -514,7 +517,10 @@ class Favorites(Resource):
             created_list = []
             if isinstance(cursor.get('favorites'), (list,)):
                 for recipe_id in cursor.get('favorites'):
-                    created_list.append({'_id': ObjectId(recipe_id), 'private': False})
+                    if _account_name == username:
+                        created_list.append({'_id': ObjectId(recipe_id)})
+                    else:
+                        created_list.append({'_id': ObjectId(recipe_id), 'private': False})
             if created_list:
                 recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
                 recipes_with_user = []
@@ -574,7 +580,10 @@ class User_Recipes(Resource):
             created_list = []
             if isinstance(cursor.get('created'), (list,)) and cursor.get('created'):
                 for recipe_id in cursor.get('created'):
-                    created_list.append({'_id': ObjectId(recipe_id), 'private': False})
+                    if _account_name == username:
+                        created_list.append({'_id': ObjectId(recipe_id)})
+                    else:
+                        created_list.append({'_id': ObjectId(recipe_id), 'private': False})
             if created_list:
                 recipes = client.db.recipes.find({'$or': created_list}).limit(num_to_get).sort('created_date.$date', -1)
                 recipes_with_user = []
@@ -977,8 +986,8 @@ api.add_resource(Refresh, '/Refresh')
 api.add_resource(Users, '/Users')
 api.add_resource(User, '/User/<username>', '/User')
 api.add_resource(Update_Password, '/UpdatePassword')
-api.add_resource(Favorites, '/Recipe/Favorites/<num_to_get>', '/Recipe/Favorites/<username>/<num_to_get>', '/Recipe/Favorites/<username>', '/Recipe/Favorites')
-api.add_resource(User_Recipes, '/Recipe/Created/<username>/<num_to_get>','/Recipe/Created/<username>', '/Recipe/Created/<num_to_get>', '/Recipe/Created' )
+api.add_resource(Favorites, '/Recipe/Favorites/CurrentUser/<num_to_get>', '/Recipe/Favorites/<username>/<num_to_get>', '/Recipe/Favorites/<username>', '/Recipe/Favorites/CurrentUser')
+api.add_resource(User_Recipes, '/Recipe/Created/<username>/<num_to_get>', '/Recipe/Created/<username>', '/Recipe/Created/CurrentUser/<num_to_get>', '/Recipe/Created/CurrentUser' )
 api.add_resource(Recipes, '/Recipes')
 api.add_resource(Recipe, '/Recipe/<recipe_id>', '/Recipe')
 api.add_resource(Comment, '/Recipe/<recipe_id>/comments', '/Recipe/comments/<comment_id>')
