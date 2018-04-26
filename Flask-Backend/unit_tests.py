@@ -2,7 +2,7 @@ import unittest
 import requests
 import string
 import random
-import app
+import app_testing as app
 from flask_pymongo import PyMongo
 
 #client = app.client
@@ -277,7 +277,7 @@ class TestDataAccess(unittest.TestCase):
                                        json={'login': 'testuser', 'password': 'somepassword'})
         access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        response = requests.get('http://localhost:5000/Recipe/Favorites', headers=header)
+        response = requests.get('http://localhost:5000/Recipe/Favorites/CurrentUser', headers=header)
         self.assertEqual(response.status_code, 200)
 
     def test_recipe_retrieval_by_user_created(self):
@@ -288,7 +288,7 @@ class TestDataAccess(unittest.TestCase):
                                        json={'login': 'testuser', 'password': 'somepassword'})
         access_token = login_response.json().get('user').get('access_token')
         header = {'Authorization': 'Bearer ' + str(access_token)}
-        response = requests.get('http://localhost:5000/Recipe/Created', headers=header)
+        response = requests.get('http://localhost:5000/Recipe/Created/CurrentUser', headers=header)
         self.assertEqual(response.status_code, 200)
 
     def test_recipe_retrieval_by_tags(self):

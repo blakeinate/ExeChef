@@ -30,8 +30,9 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 
 api = Api(app)
 jwt = JWTManager(app)
-client = PyMongo(app)
-#db = client['exechef']
+app.config['MONGO_DBNAME'] = 'unit_test_db'
+client = PyMongo(app, config_prefix='MONGO')
+
 
 
 @app.after_request
@@ -570,7 +571,7 @@ class Favorites(Resource):
 #returns list of recipes created by the current user from their created list
 class User_Recipes(Resource):
     @jwt_optional
-    def get(self, username=None, num_to_get=10):
+    def get(self, username = None, num_to_get = 10):
         _account_name = get_jwt_identity()
         num_to_get = int(num_to_get)
         if username:

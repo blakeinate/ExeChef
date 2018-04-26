@@ -1,18 +1,11 @@
 # REQUIREMENTS
 
 * need MongoDB installed on system
-* need NPM and Angular installed
 * need python 2.7 installed
 * pip installation recommended to aid in installing of package requirements from requirements.txt
-* is is recommended to install these packages in a virtual environment
 * after installation of python, you can install all packages needed
-* navigate to `/Flask-Backend`
 * using the following command `pip install -r requirements.txt`
-* To start backend use the following command `python app.py` 
-* To run unit tests, run `python app_testing.py` then in a separate terminal run `python unit_tests.py`
-* To launch front end, go in to the `/ExeChef-app` directory and run `ng serve`
-* the website can be viewed at `localhost:4200`
-
+* is is recommended to install these packages in a virtual environment
 ---
 # DATABASE STRUCTURE
 
