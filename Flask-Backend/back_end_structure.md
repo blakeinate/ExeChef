@@ -340,7 +340,7 @@ if no JWT provided, returns num_to_get recent public recipes from all users:
         "$oid": "5a7cdade485b925737ef6ef5"
       },
       "author": "BlakeB",
-      "category": "dank food",
+      "category": "great stuff food",
       "created_date": {
         "$date": 1518110334999
       },
@@ -348,19 +348,19 @@ if no JWT provided, returns num_to_get recent public recipes from all users:
       "ingredients": [
         {
           "amount": "tree-fitty",
-          "name": "dank",
+          "name": "great stuff",
           "unit": "pounds"
         }
       ],
       "modified_date": {
         "$date": 1518110334999
       },
-      "name": "dank recipe",
+      "name": "great stuff recipe",
       "private": "True",
       "steps": [
         "do cool stuff",
         "do more cool stuff",
-        "eat that shit"
+        "eat that stuff"
       ],
       "user": {
           "_id": {
@@ -375,7 +375,7 @@ if no JWT provided, returns num_to_get recent public recipes from all users:
         "$oid": "5a7ce708485b9274f77a215a"
       },
       "author": "BlakeB",
-      "category": "dank food",
+      "category": "great stuff food",
       "created_date": {
         "$date": 1518113448462
       },
@@ -383,19 +383,19 @@ if no JWT provided, returns num_to_get recent public recipes from all users:
       "ingredients": [
         {
           "amount": "tree-fitty",
-          "name": "dank",
+          "name": "great stuff",
           "unit": "pounds"
         }
       ],
       "modified_date": {
         "$date": 1518113448462
       },
-      "name": "dank recipe",
+      "name": "great stuff recipe",
       "private": "True",
       "steps": [
         "do cool stuff",
         "do more cool stuff",
-        "eat that shit"
+        "eat that stuff"
       ],
       "user": {
           "_id": {
@@ -567,19 +567,19 @@ a recipe in the following format:
       "ingredients": [
         {
           "amount": "tree-fitty",
-          "name": "dank",
+          "name": "great stuff",
           "unit": "pounds"
         }
       ],
       "modified_date": {
         "$date": 1518110334999
       },
-      "name": "dank recipe",
+      "name": "great stuff recipe",
       "private": "True",
       "steps": [
         "do cool stuff",
         "do more cool stuff",
-        "eat that shit"
+        "eat that stuff"
       ],
       "in_favorites": True #will only show up if JWT provided,
       "user": {
@@ -631,19 +631,19 @@ list of recipes in the following format:
         "ingredients": [
           {
             "amount": "tree-fitty",
-            "name": "dank",
+            "name": "great stuff",
             "unit": "pounds"
           }
         ],
         "modified_date": {
           "$date": 1518110334999
         },
-        "name": "dank recipe",
+        "name": "great stuff recipe",
         "private": "True",
         "steps": [
           "do cool stuff",
           "do more cool stuff",
-          "eat that shit"
+          "eat that stuff"
         ],
         "user": {
           "_id": {
@@ -698,19 +698,19 @@ list of recipes in the following format:
         "ingredients": [
           {
             "amount": "tree-fitty",
-            "name": "dank",
+            "name": "great stuff",
             "unit": "pounds"
           }
         ],
         "modified_date": {
           "$date": 1518110334999
         },
-        "name": "dank recipe",
+        "name": "great stuff recipe",
         "private": "True",
         "steps": [
           "do cool stuff",
           "do more cool stuff",
-          "eat that shit"
+          "eat that stuff"
         ]
         "user": {
           "_id": {
@@ -874,19 +874,19 @@ a list of recipes containing any of the searched tags in the following format:
             "ingredients": [
               {
                 "amount": "tree-fitty",
-                "name": "dank",
+                "name": "great stuff",
                 "unit": "pounds"
               }
             ],
             "modified_date": {
               "$date": 1518110334999
             },
-            "name": "dank recipe",
+            "name": "great stuff recipe",
             "private": "True",
             "steps": [
               "do cool stuff",
               "do more cool stuff",
-              "eat that shit"
+              "eat that stuff"
             ]
           }
         ]
