@@ -13,7 +13,7 @@ import {
 
 @Component({
   selector: 'Recipe-page',
-  templateUrl: './Recipe.component.html'
+  templateUrl: './recipe.component.html'
 })
 export class RecipeComponent implements OnInit {
   recipe: Recipe;
